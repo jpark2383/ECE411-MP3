@@ -1,6 +1,6 @@
 import lc3b_types::*;
 
-module mp2
+module mp3
 (
     input clk,
 
@@ -50,4 +50,4 @@ assign mem_addr_0 = mem_address[0];
 control oontrol_obj(.*);
 datapath datapath_obj(.*);
 cache cache_obj(.*);
-endmodule : mp2
+endmodule : mp3
