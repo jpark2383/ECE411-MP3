@@ -10,6 +10,7 @@ begin
 	/* Default assignments */
 	ctrl.opcode = opcode;
 	ctrl.load_cc = 1’b0;
+	ctrl.immediate_ctrl = ir[5];
 	/* ... other defaults ... */
 	/* Assign control signals based on opcode */
 	case(opcode)
@@ -19,6 +20,7 @@ begin
 		op_and: begin
 			ctrl.aluop = alu_and;
 		end
+
 		/* ... other opcodes ... */
 		default: begin
 			ctrl = 0; /* Unknown opcode, set control word to zero */

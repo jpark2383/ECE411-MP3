@@ -19,7 +19,7 @@ typedef struct packed {
 	lc3b_aluop aluop;
 	logic load_cc;
 	logic load_regfile;
-	lc3b_reg sr1, sr2, dest;
+	logic immediate_ctrl;
 } lc3b_control_word;
 
 typedef enum bit [3:0] {
