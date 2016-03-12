@@ -9,5 +9,6 @@ always_comb
 begin
 	passed.dest = ir[11:9];
 	passed.ir_5 = ir[5];
+	passed.nzp = ir[11:9];
 end
 endmodule : passed_rom

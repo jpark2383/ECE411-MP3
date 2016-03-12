@@ -23,10 +23,12 @@ typedef struct packed {
 	logic pc_sel;
 	logic sext_sel;
 	logic wb_sel;
+	lc3b_nzp nzp_val;
 } lc3b_control_word;
 typedef struct packed {
 	lc3b_reg dest;
 	logic ir_5;
+	lc3b_nzp nzp;
 } lc3b_passed_vals;
 
 typedef enum bit [3:0] {

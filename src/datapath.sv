@@ -44,7 +44,9 @@ lc3b_control_word 	gen_ctrl_out,
 					id_ctrl_out,
    					ex_ctrl_out, 
 					mem_ctrl_out;
-
+lc3b_nzp gencc_out,
+			cc_out;
+logic cccomp_out;
 assign mem_address_0 = pc_out;
 assign mem_address_1 = ex_alu_out;
 assign mem_wdata_1 = ex_wdata_out;
@@ -192,7 +194,17 @@ adder2 pc_jmp_adder
 	.b(id_pc_out),
 	.f(pc_jmp_out)
 );
-
+gencc gencc_obj
+(
+	.in(alu_out),
+	.out(gencc_out)
+);
+cccomp cccomp_obj
+(
+	.nzp(id_passed_reg_out.nzp),
+	.cc(cc_out),
+	.out(cccomp_out)
+);
 
 
 // Fourth Block
@@ -249,7 +261,7 @@ adder2 pc_adder
 );
 mux2 pc_mux 
 (
-	.sel(mem_ctrl_out.pc_sel),
+	.sel(mem_ctrl_out.pc_sel & cccomp_out),
 	.a(pc_adder_out),
 	.b(ex_pc_out),
 	.f(pc_mux_out)
