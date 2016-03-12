@@ -1,0 +1,12 @@
+import lc3b_types::*;
+
+module id_block
+(
+   input clk,
+	input stall;
+);
+
+	  
+
+
+endmodule : id_block

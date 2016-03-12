@@ -9,11 +9,8 @@ always_comb
 begin
 	/* Default assignments */
 	ctrl.opcode = opcode;
-	ctrl.load_cc = 1'b0;
+	ctrl.load_cc = 1’b0;
 	ctrl.immediate_ctrl = ir[5];
-	ctrl.pc_sel = 0;
-	ctrl.sext_sel = 0;
-	ctrl.wb_sel = 0;
 	/* ... other defaults ... */
 	/* Assign control signals based on opcode */
 	case(opcode)
@@ -22,13 +19,6 @@ begin
 		end
 		op_and: begin
 			ctrl.aluop = alu_and;
-		end
-		op_br: begin
-			ctrl.pc_sel = 1;
-			ctrl.sext_sel = 1;
-		end
-		op_ldr: begin
-			ctrl.wb_sel = 1;
 		end
 
 		/* ... other opcodes ... */

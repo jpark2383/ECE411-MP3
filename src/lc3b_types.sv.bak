@@ -20,14 +20,7 @@ typedef struct packed {
 	logic load_cc;
 	logic load_regfile;
 	logic immediate_ctrl;
-	logic pc_sel;
-	logic sext_sel;
-	logic wb_sel;
 } lc3b_control_word;
-typedef struct packed {
-	lc3b_reg dest;
-	logic ir_5;
-} lc3b_passed_vals;
 
 typedef enum bit [3:0] {
     op_add  = 4'b0001,
