@@ -14,17 +14,7 @@ typedef logic  [2:0] lc3b_reg;
 typedef logic  [2:0] lc3b_nzp;
 typedef logic  [1:0] lc3b_mem_wmask;
 
-typedef struct packed {
-	lc3b_opcode opcode;
-	lc3b_aluop aluop;
-	logic load_cc;
-	logic load_regfile;
-	logic immediate_ctrl;
-	logic pc_sel;
-	logic sext_sel;
-	logic wb_sel;
-	lc3b_nzp nzp_val;
-} lc3b_control_word;
+
 typedef struct packed {
 	lc3b_reg dest;
 	logic ir_5;
@@ -59,5 +49,17 @@ typedef enum bit [3:0] {
     alu_srl,
     alu_sra
 } lc3b_aluop;
+typedef struct packed {
+	lc3b_opcode opcode;
+	lc3b_aluop aluop;
+	logic load_cc;
+	logic load_regfile;
+	logic pc_sel;
+	logic[1:0] sext_sel;
+	logic wb_sel;
+	logic mem_write;
+	logic mem_read;
+	logic src_b_mux_sel;
+} lc3b_control_word;
 
 endpackage : lc3b_types
