@@ -57,7 +57,7 @@ cache icache
 	.pmem_write(icache_write)
 );
 
-lc3b_wor dcache_address;
+lc3b_word dcache_address;
 logic dcache_read;
 logic dcache_write;
 lc3b_cache_line dcache_rdata, dcache_wdata;
