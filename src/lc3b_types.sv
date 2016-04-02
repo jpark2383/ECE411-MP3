@@ -55,12 +55,18 @@ typedef struct packed {
 	lc3b_aluop aluop;
 	logic load_cc;
 	logic load_regfile;
-	logic pc_sel;
-	logic[1:0] sext_sel;
-	logic wb_sel;
+	logic[1:0] pc_sel;
+	logic[2:0] sext_sel;
+	logic[1:0] wb_sel;
 	logic mem_write;
 	logic mem_read;
 	logic src_b_mux_sel;
+	logic r;
+	lc3b_word pc_pass;
+	logic dest_sel;
+	logic imm;
+	logic D;
+	logic ex_write_sel;
 } lc3b_control_word;
 
 endpackage : lc3b_types

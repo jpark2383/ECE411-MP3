@@ -2,6 +2,7 @@ import lc3b_types::*;
 module control_rom
 (
 	input lc3b_opcode opcode,
+	input A, D,
 	output lc3b_control_word ctrl
 );
 
@@ -10,14 +11,16 @@ begin
 	/* Default assignments */
 	ctrl.opcode = opcode;
 	ctrl.load_cc = 0;
-	ctrl.pc_sel = 0;
-	ctrl.sext_sel = 2'b0;
+	ctrl.pc_sel = 2'b0;
+	ctrl.sext_sel = 3'b0;
 	ctrl.wb_sel = 0;
 	ctrl.load_regfile = 0;
 	ctrl.mem_read = 0;
 	ctrl.mem_write = 0;
 	ctrl.aluop = alu_add;
 	ctrl.src_b_mux_sel = 0;
+	ctrl.dest_sel = 0;
+	ctrl.ex_write_sel = 0;
 	/* ... other defaults ... */
 	/* Assign control signals based on opcode */
 	case(opcode)
@@ -32,19 +35,19 @@ begin
 			ctrl.load_cc = 1;
 		end
 		op_br: begin
-			ctrl.pc_sel = 1;
-			ctrl.sext_sel = 2'b10;
+			ctrl.pc_sel = 2'b01;
+			ctrl.sext_sel = 3'b010;
 		end
 		op_ldr: begin
 			ctrl.load_regfile = 1;
-			ctrl.wb_sel = 1;
+			ctrl.wb_sel = 2'b01;
 			ctrl.load_cc = 1;
 			ctrl.mem_read = 1;
-			ctrl.sext_sel = 2'b01;
+			ctrl.sext_sel = 3'b001;
 		end
 		op_str: begin
 			ctrl.mem_write = 1;
-			ctrl.sext_sel = 2'b01;
+			ctrl.sext_sel = 3'b001;
 			ctrl.src_b_mux_sel = 1'b1;
 		end
 		op_not: begin
@@ -52,6 +55,56 @@ begin
 			ctrl.load_regfile = 1;
 			ctrl.load_cc = 1;
 		end
+		//Checkpoint 2
+		op_jmp: begin
+			ctrl.aluop = alu_pass;
+			ctrl.pc_sel = 2'b01;
+		end
+		op_jsr: begin
+			ctrl.load_regfile = 1;
+			ctrl.dest_sel = 1;
+			if(ctrl.r == 0) begin
+				ctrl.aluop = alu_pass;
+				ctrl.pc_sel = 2'b10;
+			end
+			else begin
+				ctrl.sext_sel = 3'b101;
+				ctrl.pc_sel = 2'b01;
+			end
+		end
+		op_ldb: begin
+			ctrl.load_cc = 1;
+			ctrl.wb_sel = 2'b10;
+			ctrl.mem_read = 1;
+			ctrl.sext_sel = 3'b101;
+			ctrl.load_regfile = 1;
+		end
+		op_ldi: begin
+		end
+		op_lea: begin
+		end
+		op_shf: begin
+			ctrl.load_cc = 1;
+			ctrl.load_regfile = 1;
+			if(D == 0)
+				aluop = alu_sll;
+			else begin
+				if(A == 0)
+					aluop = alu_srl;
+				else
+					aluop = alu_sra;
+			end
+		end
+		op_stb: begin
+			ctrl.ex_write_sel = 1;
+			ctrl.mem_write = 1;
+			ctrl.src_b_mux_sel = 1;
+		end
+		op_sti: begin
+		end
+		op_trap: begin
+		end
+		
 		/* ... other opcodes ... */
 		default: begin
 			ctrl = 0; /* Unknown opcode, set control word to zero */

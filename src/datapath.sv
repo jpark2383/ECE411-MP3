@@ -11,7 +11,8 @@ module datapath
 	output lc3b_word mem_address_1,
 	output lc3b_word mem_wdata_1,
 	output logic mem_read_0, mem_read_1,
-	output logic mem_write_0, mem_write_1
+	output logic mem_write_0, mem_write_1,
+	output [1:0] mem_byte_enable
 );
 
 lc3b_word 	pc_out,
@@ -27,6 +28,8 @@ lc3b_word 	pc_out,
 			adj6_out,
 			sext9_out,
 			sext11_out,
+			adj11_out,
+			sext6_out,
 			pc_jmp_out,
 			sr2_mux_out,
 			alu_out,
@@ -38,15 +41,18 @@ lc3b_word 	pc_out,
 			ex_alu_out,
 			mem_data_out,
 			mem_alu_out,
-			ex_wdata_out;
+			ex_wdata_out,
+			dest_mux_out,
+			ex_wdata_mux_out;
+lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
 						ex_passed_reg_out,
 						id_passed_reg_out,
 						gen_passed_out;
-lc3b_control_word 	gen_ctrl_out,
-					id_ctrl_out,
+lc3b_control_word gen_ctrl_out,
+						id_ctrl_out,
    					ex_ctrl_out, 
-					mem_ctrl_out;
+						mem_ctrl_out;
 logic [2:0] src_b_mux_out;
 lc3b_nzp gencc_out,
 			cc_out,
@@ -58,12 +64,15 @@ assign mem_wdata_1 = ex_wdata_out;
 assign mem_read_1 = ex_ctrl_out.mem_read;
 assign mem_write_1 = ex_ctrl_out.mem_write;
 assign mem_read_0 = 1;
-
+assign gen_ctrl_out.r = ir_out[11];
+assign gen_ctrl_out.pc_pass = pc_out;
 
 // Control State and Registers
 control_rom gen_ctrl
 (
 	.opcode(lc3b_opcode'(ir_out[15:12])),
+	.A(ir_out[5]),
+	.D(ir_out[4]),
 	.ctrl(gen_ctrl_out)
 );
 passed_rom gen_passed
@@ -135,13 +144,27 @@ sext #(.width(11)) sext11_obj
 	.in(ir_out[10:0]),
 	.out(sext11_out)
 );
-mux4 sext_mux
+adj #(.width(11)) adj11_obj
+(
+	.in(ir_out[10:0]),
+	.out(adj11_out)
+);
+sext #(.width(6)) sext6_obj
+(
+	.in(ir_out[5:0]),
+	.out(sext6_out)
+);
+mux8 sext_mux
 (
 	.sel(gen_ctrl_out.sext_sel),
-	.a(sext5_out),
-	.b(adj6_out),
-	.c(sext9_out),
-	.d(sext11_out),
+	.x0(sext5_out),
+	.x1(adj6_out),
+	.x2(sext9_out),
+	.x3(sext11_out),
+	.x4(adj11_out),
+	.x5(sext6_out),
+	.x6(1'b0),
+	.x7(1'b0),
 	.f(sext_mux_out)
 );
 mux2 #(.width(3)) src_b_mux
@@ -151,6 +174,14 @@ mux2 #(.width(3)) src_b_mux
 	.b(ir_out[11:9]),
 	.f(src_b_mux_out)
 );
+
+mux2 dest_mux
+(
+	.sel(mem_ctrl_out.dest_sel),
+	.a(mem_passed_reg_out.dest),
+	.b(3'b111),
+	.f(dest_mux_out),
+);
 regfile regs
 (
 	.clk,
@@ -158,7 +189,7 @@ regfile regs
 	.in(wb_mux_out),
 	.src_a(ir_out[8:6]),
 	.src_b(src_b_mux_out),
-	.dest(mem_passed_reg_out.dest),
+	.dest(dest_mux_out),
 	.reg_a(regfile_sr1),
 	.reg_b(regfile_sr2)
 );
@@ -180,11 +211,27 @@ register #(.width($bits(lc3b_passed_vals))) ex_passed_reg
 	.in(id_passed_reg_out),
 	.out(ex_passed_reg_out)
 );
+mux2 ex_wdata_mux
+(
+	.sel(ex_ctrl_out.ex_write_sel),
+	.a(sr2_out),
+	.b({sr2_out[7:0], sr2_out[7:0]}),
+	.f(ex_wdata_mux_out)
+);
+mux4 mem_byte_mux
+(
+	.sel({ex_ctrl_out.ex_write_sel, ex_alu_out[0]}),
+	.a(2'b11),
+	.b(2'b11),
+	.c(2'b01),
+	.d(2'b10),
+	.f(mem_byte_enable)
+);
 register ex_wdata_reg
 (
 	.clk,
 	.load(~stall),
-	.in(sr2_out),
+	.in(ex_wdata_mux_out),
 	.out(ex_wdata_out)
 );
 register ex_pc_reg
@@ -223,7 +270,6 @@ adder2 pc_jmp_adder
 );
 
 
-
 // Fourth Block
 register #(.width($bits(lc3b_control_word))) mem_control
 (
@@ -253,12 +299,21 @@ register mem_alu_reg
 	.in(ex_alu_out),
 	.out(mem_alu_out)
 );
+mux2 byte_mux
+(
+	.sel(mem_alu_out[0]),
+	.a(mem_data_out[7:0]),
+	.b(mem_data_out[15:8]),
+	.f(byte_mux_out)
+);
 
-mux2 wb_mux
+mux4 wb_mux
 (
 	.sel(mem_ctrl_out.wb_sel),
 	.a(mem_alu_out),
 	.b(mem_data_out),
+	.c({8'b0,byte_mux_out}),
+	.d(16'b0),
 	.f(wb_mux_out)
 );
 gencc gencc_obj
@@ -294,11 +349,13 @@ adder2 pc_adder
 	.b(16'd2),
 	.f(pc_adder_out)
 );
-mux2 pc_mux 
+mux4 pc_mux 
 (
 	.sel(ex_ctrl_out.pc_sel & cccomp_out),
 	.a(pc_adder_out),
 	.b(ex_pc_out),
+	.c(ex_alu_out),
+	.d(16'b0),
 	.f(pc_mux_out)
 );
 register ir
