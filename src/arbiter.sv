@@ -38,29 +38,20 @@ enum int unsigned {
 /* Output logic */
 always_comb
 begin
-	l2_address = dcache_address;
-	l2_wdata = dcache_wdata;
-	l2_read = dcache_read;
-	l2_write = dcache_write;
+	l2_address = 0;
+	l2_wdata = 0;
+	l2_read = 0;
+	l2_write = 0;
 
 	icache_mem_resp = 0;
 	icache_rdata = 0;
 	
-	dcache_mem_resp = l2_mem_resp;
-	dcache_rdata = l2_rdata;
+	dcache_mem_resp = 0;
+	dcache_rdata = 0;
 	
 	case(state)
 		idle: begin
-			l2_address = 32'hx;
-			l2_wdata = 0;
-			l2_read = 0;
-			l2_write = 0;
-
-			icache_mem_resp = 0;
-			icache_rdata = 0;
-
-			dcache_mem_resp = 0;
-			dcache_rdata = 0;
+			;
 		end
 		
 		icache: begin
