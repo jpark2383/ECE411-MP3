@@ -59,6 +59,7 @@ begin
 		op_jmp: begin
 			ctrl.aluop = alu_pass;
 			ctrl.pc_sel = 2'b01;
+			ctrl.jsr_mux_sel = 1;
 		end
 		op_jsr: begin
 			ctrl.load_regfile = 1;
