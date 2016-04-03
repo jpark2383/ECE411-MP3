@@ -317,16 +317,26 @@ adder2 pc_jmp_adder
 	.f(pc_jmp_out)
 );
 
-mux2 jsr_mux
+mux4 jsr_mux
 (
 	.sel(id_ctrl_out.jsr_mux_sel),
 	.a(pc_jmp_out),
 	.b(alu_out),
+	.c(id_pc_out),
+	.d(16'b0),
 	.f(jsr_mux_out)
 );
 
 
 // Fourth Block
+register mem_pc_reg
+(
+	.clk,
+	.load(~stall),
+	.in(ex_pc_out),
+	.out(mem_pc_out)
+);
+
 register #(.width($bits(lc3b_control_word))) mem_control
 (
 	.clk,
@@ -369,7 +379,7 @@ mux4 wb_mux
 	.a(mem_alu_out),
 	.b(mem_data_out),
 	.c({8'b0,byte_mux_out}),
-	.d(16'b0),
+	.d(mem_pc_out),
 	.f(wb_mux_out)
 );
 gencc gencc_obj
@@ -415,7 +425,7 @@ mux4 pc_mux
 	.a(pc_adder_out),
 	.b(ex_pc_out),
 	.c(ex_alu_out),
-	.d(mem_data_out),
+	.d(mem_rdata_1_out),
 	.f(pc_mux_out)
 );
 register ir

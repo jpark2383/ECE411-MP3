@@ -62,7 +62,7 @@ typedef struct packed {
 	logic dest_sel;
 	logic ex_write_sel;
 	logic[1:0] lea_mux_sel;
-	logic jsr_mux_sel;
+	logic[1:0] jsr_mux_sel;
 	logic check_cc;
 } lc3b_control_word;
 
