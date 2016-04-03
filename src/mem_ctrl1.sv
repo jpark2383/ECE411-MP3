@@ -10,11 +10,12 @@ module mem_ctrl1
   input  lc3b_word mem_address_in, 
   output lc3b_word mem_address_out,
   output lc3b_word mem_rdata_out,
-  output mem_ready,
-  output mem_read
+  output logic mem_ready,
+  output logic mem_read,
+  output logic mem_write
 );
 
-wire load_mem, mem_sel;
+logic load_mem, mem_sel, mem_data_addr;
 
 enum int unsigned {
    regular,
@@ -34,22 +35,39 @@ always_comb begin
    mem_sel = 0;
    load_mem = 0;
    mem_read = 0;
-   mem_ready = 0;
+	mem_write = 0;
+   mem_ready = 1;
    case (state)
      regular: begin
        mem_sel = 0;
        load_mem = 1;
-       mem_read = 1;
+		 if (opcode == op_sti || opcode == op_ldi) begin
+		   mem_read = 1;
+			mem_ready = 0;
+		end
+		 if (opcode == op_ldr || opcode == op_ldb) begin
+			mem_read = 1;
+			mem_ready = 0;
+		 end
+		 if (opcode == op_stb || opcode == op_str) begin
+			mem_write = 1;
+			mem_ready = 0;
+		 end
      end
      indirect: begin
         load_mem = 1;
+		  if (opcode == op_sti)
+			 mem_write = 1;
+		  else
+			 mem_read = 1;
         mem_sel = 1;
-        mem_read = 1;
+		  mem_ready = mem_resp;
      end
      done: begin
         mem_ready = 1;
      end
 	 endcase
+
 end
 
 always_comb begin
@@ -80,7 +98,7 @@ mux2 mem_addr_mux
 (
   .sel(mem_sel),
   .a(mem_address_in),
-  .b(mem_rdata_out),
+  .b(mem_rdata_in),
   .f(mem_address_out)
  );
 

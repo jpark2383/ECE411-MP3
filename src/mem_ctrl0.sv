@@ -7,11 +7,11 @@ module mem_ctrl0
   input  mem_resp,
   input  lc3b_word mem_rdata_in,
   output lc3b_word mem_rdata_out,
-  output mem_ready,
-  output mem_read
+  output logic mem_ready,
+  output logic mem_read
 );
 
-wire load_mem;
+logic load_mem;
 
 enum int unsigned {
    regular,
@@ -34,6 +34,7 @@ always_comb begin
      regular: begin
        load_mem = 1;
        mem_read = 1;
+		 mem_ready = 0;
      end
      done: begin
         mem_ready = 1;

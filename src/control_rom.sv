@@ -15,8 +15,6 @@ begin
 	ctrl.sext_sel = 3'b0;
 	ctrl.wb_sel = 0;
 	ctrl.load_regfile = 0;
-	ctrl.mem_read = 0;
-	ctrl.mem_write = 0;
 	ctrl.aluop = alu_add;
 	ctrl.src_b_mux_sel = 0;
 	ctrl.dest_sel = 0;
@@ -43,11 +41,9 @@ begin
 			ctrl.load_regfile = 1;
 			ctrl.wb_sel = 2'b01;
 			ctrl.load_cc = 1;
-			ctrl.mem_read = 1;
 			ctrl.sext_sel = 3'b001;
 		end
 		op_str: begin
-			ctrl.mem_write = 1;
 			ctrl.sext_sel = 3'b001;
 			ctrl.src_b_mux_sel = 1'b1;
 		end
@@ -76,7 +72,6 @@ begin
 		op_ldb: begin
 			ctrl.load_cc = 1;
 			ctrl.wb_sel = 2'b10;
-			ctrl.mem_read = 1;
 			ctrl.sext_sel = 3'b101;
 			ctrl.load_regfile = 1;
 		end
@@ -102,7 +97,6 @@ begin
 		end
 		op_stb: begin
 			ctrl.ex_write_sel = 1;
-			ctrl.mem_write = 1;
 			ctrl.src_b_mux_sel = 1;
 		end
 		op_sti: begin

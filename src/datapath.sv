@@ -3,7 +3,6 @@ import lc3b_types::*;
 module datapath
 (
     input clk,
-    input stall,
 	input mem_resp_0, mem_resp_1,
 	input lc3b_word mem_rdata_0, mem_rdata_1,
 
@@ -43,9 +42,11 @@ lc3b_word 	pc_out,
 			mem_data_out,
 			mem_alu_out,
 			ex_wdata_out,
-			dest_mux_out,
 			ex_wdata_mux_out,
-			lea_mux_out;
+			lea_mux_out,
+			mem_rdata_1_out,
+			mem_rdata_0_out;
+lc3b_reg dest_mux_out;
 lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
 						ex_passed_reg_out,
@@ -55,17 +56,44 @@ lc3b_control_word gen_ctrl_out,
 						id_ctrl_out,
    					ex_ctrl_out, 
 						mem_ctrl_out;
+logic mem_ready_0, mem_ready_1;
 logic [2:0] src_b_mux_out;
+logic stall;
 lc3b_nzp gencc_out,
 			cc_out,
 			cc_reg_out;
 logic cccomp_out;
 assign mem_address_0 = pc_out;
-assign mem_address_1 = ex_alu_out;
+//assign mem_address_1 = ex_alu_out;
 assign mem_wdata_1 = ex_wdata_out;
-assign mem_read_1 = ex_ctrl_out.mem_read;
-assign mem_write_1 = ex_ctrl_out.mem_write;
-assign mem_read_0 = 1;
+//assign mem_read_1 = ex_ctrl_out.mem_read;
+//assign mem_write_1 = ex_ctrl_out.mem_write;
+//assign mem_read_0 = 1;
+assign stall = ~(mem_ready_0 & mem_ready_1);
+mem_ctrl0 mem_ctrl0_obj
+(
+	.clk,
+	.stall,
+   .mem_resp(mem_resp_0),
+   .mem_rdata_in(mem_rdata_0),
+   .mem_rdata_out(mem_rdata_0_out),
+   .mem_ready(mem_ready_0),
+   .mem_read(mem_read_0)
+);
+mem_ctrl1 mem_ctrl1_obj
+(
+	.clk,
+	.stall,
+   .mem_resp(mem_resp_1),
+	.opcode(mem_ctrl_out.opcode),
+	.mem_address_in(ex_alu_out),
+	.mem_address_out(mem_address_1),
+   .mem_rdata_in(mem_rdata_1),
+   .mem_rdata_out(mem_rdata_1_out),
+   .mem_ready(mem_ready_1),
+   .mem_read(mem_read_1),
+	.mem_write(mem_write_1)
+);
 
 // Control State and Registers
 control_rom gen_ctrl
@@ -90,6 +118,7 @@ register #(.width($bits(lc3b_control_word))) id_control
 	.in(gen_ctrl_out),
 	.out(id_ctrl_out)
 );
+
 register #(.width($bits(lc3b_passed_vals))) id_passed_reg
 (
 	.clk,
@@ -170,7 +199,7 @@ mux8 sext_mux
 	.x4(adj11_out),
 	.x5(sext6_out),
 	.x6(adj9_out),
-	.x7(1'b0),
+	.x7(16'b0),
 	.f(sext_mux_out)
 );
 mux2 #(.width(3)) src_b_mux
@@ -181,7 +210,7 @@ mux2 #(.width(3)) src_b_mux
 	.f(src_b_mux_out)
 );
 
-mux2 dest_mux
+mux2 #(.width(3)) dest_mux
 (
 	.sel(mem_ctrl_out.dest_sel),
 	.a(mem_passed_reg_out.dest),
@@ -224,7 +253,7 @@ mux2 ex_wdata_mux
 	.b({sr2_out[7:0], sr2_out[7:0]}),
 	.f(ex_wdata_mux_out)
 );
-mux4 mem_byte_mux
+mux4 #(.width(2)) mem_byte_mux
 (
 	.sel({ex_ctrl_out.ex_write_sel, ex_alu_out[0]}),
 	.a(2'b11),
@@ -304,7 +333,7 @@ register mem_data
 (
 	.clk,
 	.load(~stall),
-	.in(mem_rdata_1),
+	.in(mem_rdata_1_out),
 	.out(mem_data_out)
 );
 register mem_alu_reg
@@ -314,7 +343,7 @@ register mem_alu_reg
 	.in(ex_alu_out),
 	.out(mem_alu_out)
 );
-mux2 byte_mux
+mux2 #(.width(8)) byte_mux
 (
 	.sel(mem_alu_out[0]),
 	.a(mem_data_out[7:0]),
@@ -377,7 +406,7 @@ register ir
 (
 	.clk,
 	.load(~stall),
-	.in(mem_rdata_0),
+	.in(mem_rdata_0_out),
 	.out(ir_out)
 );
 	
