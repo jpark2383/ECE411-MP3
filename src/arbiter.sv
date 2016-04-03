@@ -87,7 +87,7 @@ end
 /* Next state logic */
 always_comb
 begin
-	next_state = state;
+	next_state = idle;
 	case(state)
 		idle: begin
 			if(icache_read)
