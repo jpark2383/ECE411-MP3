@@ -1,6 +1,6 @@
 import lc3b_types::*;
 
-module mem_ctrl
+module mem_ctrl1
 (
   input  clk,
   input  stall,
@@ -12,18 +12,19 @@ module mem_ctrl
   output lc3b_word mem_rdata_out,
   output mem_ready,
   output mem_read
-)
+);
 
 wire load_mem, mem_sel;
+
 enum int unsigned {
    regular,
    indirect,
    done
-}
+} state, next_state;
 
 register mem_data
 (
-  .clk
+  .clk,
   .load(load_mem),
   .in(mem_rdata_in),
   .out(mem_rdata_out)
@@ -48,13 +49,14 @@ always_comb begin
      done: begin
         mem_ready = 1;
      end
+	 endcase
 end
 
 always_comb begin
    next_state = regular;
    case (state)
      regular: begin
-        if (mem_resp_1 == 1) begin
+        if (mem_resp == 1) begin
            if (opcode == op_sti || opcode == op_ldi)
              next_state = indirect;
            else
@@ -62,7 +64,7 @@ always_comb begin
         end
      end
      indirect: begin
-       if (mem_resp_1 == 1)
+       if (mem_resp == 1)
          next_state = done;
        else
          next_state = indirect;
@@ -71,6 +73,7 @@ always_comb begin
         if (stall == 1)
           next_state = done;
      end
+	endcase
 end
 
 mux2 mem_addr_mux
@@ -84,4 +87,4 @@ mux2 mem_addr_mux
 always_ff @(posedge clk) begin
    state <= next_state;
 end
-endmodule : mem_ctrl
+endmodule : mem_ctrl1

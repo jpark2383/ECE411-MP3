@@ -27,6 +27,8 @@ lc3b_word 	mem_address_0, mem_address_1,
 				mem_wdata_0, mem_wdata_1;
 logic mem_read_0, mem_read_1,
 		mem_write_0, mem_write_1;
+
+logic [1:0] mem_byte_enable;
 		
 datapath datapath_obj(.*, 
 							 .mem_rdata_0(rdata_a), 
@@ -41,7 +43,7 @@ assign write_a = mem_write_0;
 assign write_b = mem_write_1;
 
 assign wmask_a = 2'b11;
-assign wmask_b = 2'b11;
+assign wmask_b = mem_byte_enable;
 
 assign address_a = mem_address_0;
 assign address_b = mem_address_1;

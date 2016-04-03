@@ -61,12 +61,11 @@ typedef struct packed {
 	logic mem_write;
 	logic mem_read;
 	logic src_b_mux_sel;
-	logic r;
-	lc3b_word pc_pass;
 	logic dest_sel;
 	logic imm;
 	logic D;
 	logic ex_write_sel;
+	logic lea_mux_sel;
 } lc3b_control_word;
 
 endpackage : lc3b_types

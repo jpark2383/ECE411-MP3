@@ -12,7 +12,7 @@ module datapath
 	output lc3b_word mem_wdata_1,
 	output logic mem_read_0, mem_read_1,
 	output logic mem_write_0, mem_write_1,
-	output [1:0] mem_byte_enable
+	output logic [1:0] mem_byte_enable
 );
 
 lc3b_word 	pc_out,
@@ -30,6 +30,7 @@ lc3b_word 	pc_out,
 			sext11_out,
 			adj11_out,
 			sext6_out,
+			adj9_out,
 			pc_jmp_out,
 			sr2_mux_out,
 			alu_out,
@@ -43,7 +44,8 @@ lc3b_word 	pc_out,
 			mem_alu_out,
 			ex_wdata_out,
 			dest_mux_out,
-			ex_wdata_mux_out;
+			ex_wdata_mux_out,
+			lea_mux_out;
 lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
 						ex_passed_reg_out,
@@ -64,8 +66,6 @@ assign mem_wdata_1 = ex_wdata_out;
 assign mem_read_1 = ex_ctrl_out.mem_read;
 assign mem_write_1 = ex_ctrl_out.mem_write;
 assign mem_read_0 = 1;
-assign gen_ctrl_out.r = ir_out[11];
-assign gen_ctrl_out.pc_pass = pc_out;
 
 // Control State and Registers
 control_rom gen_ctrl
@@ -73,6 +73,7 @@ control_rom gen_ctrl
 	.opcode(lc3b_opcode'(ir_out[15:12])),
 	.A(ir_out[5]),
 	.D(ir_out[4]),
+	.R(ir_out[11]),
 	.ctrl(gen_ctrl_out)
 );
 passed_rom gen_passed
@@ -154,6 +155,11 @@ sext #(.width(6)) sext6_obj
 	.in(ir_out[5:0]),
 	.out(sext6_out)
 );
+adj #(.width(9)) adj9_obj
+(
+	.in(ir_out[8:0]),
+	.out(adj9_out)
+);
 mux8 sext_mux
 (
 	.sel(gen_ctrl_out.sext_sel),
@@ -163,7 +169,7 @@ mux8 sext_mux
 	.x3(sext11_out),
 	.x4(adj11_out),
 	.x5(sext6_out),
-	.x6(1'b0),
+	.x6(adj9_out),
 	.x7(1'b0),
 	.f(sext_mux_out)
 );
@@ -180,7 +186,7 @@ mux2 dest_mux
 	.sel(mem_ctrl_out.dest_sel),
 	.a(mem_passed_reg_out.dest),
 	.b(3'b111),
-	.f(dest_mux_out),
+	.f(dest_mux_out)
 );
 regfile regs
 (
@@ -241,11 +247,20 @@ register ex_pc_reg
 	.in(pc_jmp_out),
 	.out(ex_pc_out)
 );
+
+mux2 lea_mux
+(
+	.sel(ex_ctrl_out.lea_mux_sel),
+	.a(alu_out),
+	.b(pc_jmp_out),
+	.f(lea_mux_out)
+);
+
 register ex_alu_reg
 (
 	.clk,
 	.load(~stall),
-	.in(alu_out),
+	.in(lea_mux_out),
 	.out(ex_alu_out)
 );
 alu alu_obj

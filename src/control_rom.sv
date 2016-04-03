@@ -2,7 +2,7 @@ import lc3b_types::*;
 module control_rom
 (
 	input lc3b_opcode opcode,
-	input A, D,
+	input A, D, R,
 	output lc3b_control_word ctrl
 );
 
@@ -21,6 +21,7 @@ begin
 	ctrl.src_b_mux_sel = 0;
 	ctrl.dest_sel = 0;
 	ctrl.ex_write_sel = 0;
+	ctrl.lea_mux_sel = 0;
 	/* ... other defaults ... */
 	/* Assign control signals based on opcode */
 	case(opcode)
@@ -63,7 +64,7 @@ begin
 		op_jsr: begin
 			ctrl.load_regfile = 1;
 			ctrl.dest_sel = 1;
-			if(ctrl.r == 0) begin
+			if(R == 0) begin
 				ctrl.aluop = alu_pass;
 				ctrl.pc_sel = 2'b10;
 			end
@@ -82,17 +83,21 @@ begin
 		op_ldi: begin
 		end
 		op_lea: begin
+			ctrl.load_regfile = 1;
+			ctrl.load_cc = 1;
+			ctrl.sext_sel = 3'b110;
+			ctrl.lea_mux_sel = 1;
 		end
 		op_shf: begin
 			ctrl.load_cc = 1;
 			ctrl.load_regfile = 1;
 			if(D == 0)
-				aluop = alu_sll;
+				ctrl.aluop = alu_sll;
 			else begin
 				if(A == 0)
-					aluop = alu_srl;
+					ctrl.aluop = alu_srl;
 				else
-					aluop = alu_sra;
+					ctrl.aluop = alu_sra;
 			end
 		end
 		op_stb: begin
