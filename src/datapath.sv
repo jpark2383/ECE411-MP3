@@ -405,9 +405,13 @@ adder2 pc_adder
 	.b(16'd2),
 	.f(pc_adder_out)
 );
+
+logic cc;
+assign cc = (~ex_ctrl_out.check_cc | cccomp_out);
+
 mux4 pc_mux 
 (
-	.sel(ex_ctrl_out.pc_sel & cccomp_out),
+	.sel(ex_ctrl_out.pc_sel & {1'b1, cc}),
 	.a(pc_adder_out),
 	.b(ex_pc_out),
 	.c(ex_alu_out),

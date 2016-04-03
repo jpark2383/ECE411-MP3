@@ -21,6 +21,7 @@ begin
 	ctrl.ex_write_sel = 0;
 	ctrl.lea_mux_sel = 2'b0;
 	ctrl.jsr_mux_sel = 0;
+	ctrl.check_cc = 0;
 	/* ... other defaults ... */
 	/* Assign control signals based on opcode */
 	case(opcode)
@@ -37,6 +38,7 @@ begin
 		op_br: begin
 			ctrl.pc_sel = 2'b01;
 			ctrl.sext_sel = 3'b010;
+			ctrl.check_cc = 1;
 		end
 		op_ldr: begin
 			ctrl.load_regfile = 1;
@@ -63,13 +65,12 @@ begin
 			ctrl.dest_sel = 1;
 			ctrl.lea_mux_sel = 2'b11;
 			ctrl.aluop = alu_pass;
+			ctrl.pc_sel = 2'b01;
 			if(R == 0) begin
-				ctrl.pc_sel = 2'b01;
 				ctrl.jsr_mux_sel = 1;
 			end
 			else begin
 				ctrl.sext_sel = 3'b011;
-				ctrl.pc_sel = 2'b01;
 			end
 		end
 		op_ldb: begin
