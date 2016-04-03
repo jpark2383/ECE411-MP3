@@ -46,7 +46,17 @@ begin
 			ctrl.load_cc = 1;
 			ctrl.sext_sel = 3'b001;
 		end
+		op_ldi: begin
+			ctrl.load_regfile = 1;
+			ctrl.wb_sel = 2'b01;
+			ctrl.load_cc = 1;
+			ctrl.sext_sel = 3'b001;
+		end
 		op_str: begin
+			ctrl.sext_sel = 3'b001;
+			ctrl.src_b_mux_sel = 1'b1;
+		end
+		op_sti: begin
 			ctrl.sext_sel = 3'b001;
 			ctrl.src_b_mux_sel = 1'b1;
 		end

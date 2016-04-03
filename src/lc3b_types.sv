@@ -15,6 +15,10 @@ typedef logic  [2:0] lc3b_nzp;
 typedef logic  [1:0] lc3b_mem_wmask;
 
 typedef logic [127:0] lc3b_cache_line;
+typedef logic  [8:0] lc3b_c_tag;
+typedef logic  [3:0] lc3b_c_offset;
+typedef logic  [2:0] lc3b_c_index;
+
 
 typedef struct packed {
 	lc3b_reg dest;

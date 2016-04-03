@@ -250,7 +250,7 @@ register #(.width($bits(lc3b_passed_vals))) ex_passed_reg
 );
 mux2 ex_wdata_mux
 (
-	.sel(ex_ctrl_out.ex_write_sel),
+	.sel(id_ctrl_out.ex_write_sel),
 	.a(sr2_out),
 	.b({sr2_out[7:0], sr2_out[7:0]}),
 	.f(ex_wdata_mux_out)
