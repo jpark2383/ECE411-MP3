@@ -45,7 +45,7 @@ always_comb begin
 		   mem_read = 1;
 			mem_ready = 0;
 		end
-		 if (opcode == op_ldr || opcode == op_ldb) begin
+		 if (opcode == op_ldr || opcode == op_ldb || opcode == op_trap) begin
 			mem_read = 1;
 			mem_ready = 0;
 		 end
@@ -61,7 +61,7 @@ always_comb begin
 		  else
 			 mem_read = 1;
         mem_sel = 1;
-		  mem_ready = mem_resp;
+		  mem_ready = 0;
      end
      done: begin
         mem_ready = 1;

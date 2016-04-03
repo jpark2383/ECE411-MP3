@@ -19,7 +19,8 @@ begin
 	ctrl.src_b_mux_sel = 0;
 	ctrl.dest_sel = 0;
 	ctrl.ex_write_sel = 0;
-	ctrl.lea_mux_sel = 0;
+	ctrl.lea_mux_sel = 2'b0;
+	ctrl.jsr_mux_sel = 0;
 	/* ... other defaults ... */
 	/* Assign control signals based on opcode */
 	case(opcode)
@@ -60,12 +61,14 @@ begin
 		op_jsr: begin
 			ctrl.load_regfile = 1;
 			ctrl.dest_sel = 1;
+			ctrl.lea_mux_sel = 2'b11;
+			ctrl.aluop = alu_pass;
 			if(R == 0) begin
-				ctrl.aluop = alu_pass;
-				ctrl.pc_sel = 2'b10;
+				ctrl.pc_sel = 2'b01;
+				ctrl.jsr_mux_sel = 1;
 			end
 			else begin
-				ctrl.sext_sel = 3'b101;
+				ctrl.sext_sel = 3'b011;
 				ctrl.pc_sel = 2'b01;
 			end
 		end
@@ -81,11 +84,12 @@ begin
 			ctrl.load_regfile = 1;
 			ctrl.load_cc = 1;
 			ctrl.sext_sel = 3'b110;
-			ctrl.lea_mux_sel = 1;
+			ctrl.lea_mux_sel = 2'b01;
 		end
 		op_shf: begin
 			ctrl.load_cc = 1;
 			ctrl.load_regfile = 1;
+			ctrl.sext_sel = 3'b100;
 			if(D == 0)
 				ctrl.aluop = alu_sll;
 			else begin
@@ -102,6 +106,10 @@ begin
 		op_sti: begin
 		end
 		op_trap: begin
+			ctrl.load_regfile = 1;
+			ctrl.dest_sel = 1;
+			ctrl.lea_mux_sel = 2'b10;
+			ctrl.pc_sel = 2'b11;
 		end
 		
 		/* ... other opcodes ... */

@@ -61,7 +61,8 @@ typedef struct packed {
 	logic src_b_mux_sel;
 	logic dest_sel;
 	logic ex_write_sel;
-	logic lea_mux_sel;
+	logic[1:0] lea_mux_sel;
+	logic jsr_mux_sel;
 } lc3b_control_word;
 
 endpackage : lc3b_types

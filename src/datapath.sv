@@ -45,7 +45,8 @@ lc3b_word 	pc_out,
 			ex_wdata_mux_out,
 			lea_mux_out,
 			mem_rdata_1_out,
-			mem_rdata_0_out;
+			mem_rdata_0_out,
+			jsr_mux_out;
 lc3b_reg dest_mux_out;
 lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
@@ -85,7 +86,7 @@ mem_ctrl1 mem_ctrl1_obj
 	.clk,
 	.stall,
    .mem_resp(mem_resp_1),
-	.opcode(mem_ctrl_out.opcode),
+	.opcode(ex_ctrl_out.opcode),
 	.mem_address_in(ex_alu_out),
 	.mem_address_out(mem_address_1),
    .mem_rdata_in(mem_rdata_1),
@@ -184,11 +185,12 @@ sext #(.width(6)) sext6_obj
 	.in(ir_out[5:0]),
 	.out(sext6_out)
 );
-adj #(.width(9)) adj9_obj
+sext #(.width(9)) adj9_obj
 (
 	.in(ir_out[8:0]),
 	.out(adj9_out)
 );
+
 mux8 sext_mux
 (
 	.sel(gen_ctrl_out.sext_sel),
@@ -196,10 +198,10 @@ mux8 sext_mux
 	.x1(adj6_out),
 	.x2(sext9_out),
 	.x3(sext11_out),
-	.x4(adj11_out),
+	.x4({12'b0, ir_out[3:0]}),
 	.x5(sext6_out),
 	.x6(adj9_out),
-	.x7(16'b0),
+	.x7({7'b0, ir_out[7:0], 1'b0}),
 	.f(sext_mux_out)
 );
 mux2 #(.width(3)) src_b_mux
@@ -273,15 +275,17 @@ register ex_pc_reg
 (
 	.clk,
 	.load(~stall),
-	.in(pc_jmp_out),
+	.in(jsr_mux_out),
 	.out(ex_pc_out)
 );
 
-mux2 lea_mux
+mux4 lea_mux
 (
-	.sel(ex_ctrl_out.lea_mux_sel),
+	.sel(id_ctrl_out.lea_mux_sel),
 	.a(alu_out),
 	.b(pc_jmp_out),
+	.c(sext_reg_out),
+	.d(id_pc_out),
 	.f(lea_mux_out)
 );
 
@@ -311,6 +315,14 @@ adder2 pc_jmp_adder
 	.a(sext_reg_out << 1),
 	.b(id_pc_out),
 	.f(pc_jmp_out)
+);
+
+mux2 jsr_mux
+(
+	.sel(id_ctrl_out.jsr_mux_sel),
+	.a(pc_jmp_out),
+	.b(alu_out),
+	.f(jsr_mux_out)
 );
 
 
@@ -399,7 +411,7 @@ mux4 pc_mux
 	.a(pc_adder_out),
 	.b(ex_pc_out),
 	.c(ex_alu_out),
-	.d(16'b0),
+	.d(mem_data_out),
 	.f(pc_mux_out)
 );
 register ir
