@@ -19,7 +19,6 @@ typedef logic  [8:0] lc3b_c_tag;
 typedef logic  [3:0] lc3b_c_offset;
 typedef logic  [2:0] lc3b_c_index;
 
-
 typedef struct packed {
 	lc3b_reg dest;
 	logic ir_5;

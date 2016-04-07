@@ -1,6 +1,6 @@
 import lc3b_types::*;
 
-module cache
+module l2_cache
 (
 	 input clk,
 	
@@ -54,14 +54,14 @@ logic lru;
 logic dirty0, dirty1;
 logic pmem_addressmux_sel;
 
-l2_cache_control controller
+cache_control controller
 (
 	 .*
 );
 
-l2_cache_datapath datapath
+cache_datapath datapath
 (
 	 .*
 );
 
-endmodule : cache
+endmodule : l2_cache
