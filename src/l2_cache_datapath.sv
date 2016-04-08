@@ -5,11 +5,11 @@ module l2_cache_datapath
 	 input clk,
 	 
 	 input lc3b_word mem_address,
-	 input lc3b_c_tag tag,
-	 input lc3b_c_index index,
-	 input lc3b_c_offset offset,
+	 input lc3b_c2_tag tag,
+	 input lc3b_c2_index index,
+	 input lc3b_c2_offset offset,
 	 
-	 input lc3b_word mem_wdata,
+	 input lc3b_cache_line l2_mem_wdata,
 	 input lc3b_mem_wmask mem_byte_enable,
 	 input lc3b_cache_line pmem_rdata,
 	 
@@ -38,7 +38,7 @@ module l2_cache_datapath
 	 output logic hit, full, valid0, valid1,
 	 output lc3b_cache_line pmem_wdata,
 	 output lc3b_word pmem_address,
-	 output lc3b_word mem_rdata,
+	 output lc3b_cache_line l2_mem_rdata,
 	 output logic mem_resp,
 	 output logic lru,
 	 output logic dirty0, dirty1
@@ -63,7 +63,7 @@ logic data0w;
 logic data1w;
 assign data0w = data0_write | (hit0 & mem_write);
 assign data1w = data1_write | (hit1 & mem_write);
-
+assign l2_mem_rdata = cachelinemux_out;
 
 array #(.width(1)) dirty0arr
 (
@@ -83,7 +83,7 @@ array #(.width(1)) valid0arr
 	.dataout(valid0_out)
 );
 
-array #(.width(9)) tag0
+array #(.width(6)) tag0
 (
 	.clk(clk),
 	.write(tag0_write),
@@ -92,7 +92,7 @@ array #(.width(9)) tag0
 	.dataout(tag0_out)
 );
 
-array data0
+array #(.width(128),.height(64)) data0
 (
 	.clk(clk),
 	.write(data0w),
@@ -126,7 +126,7 @@ array #(.width(1)) valid1arr
 	.dataout(valid1_out)
 );
 
-array #(.width(9)) tag1
+array #(.width(6)) tag1
 (
 	.clk(clk),
 	.write(tag1_write),
@@ -135,7 +135,7 @@ array #(.width(9)) tag1
 	.dataout(tag1_out)
 );
 
-array data1
+array #(.width(128),. height(64)) data1
 (
 	.clk(clk),
 	.write(data1w),
@@ -182,46 +182,15 @@ mux2 #(.width(128)) cachelinemux
 	.f(cachelinemux_out)
 );
 
-mux8 #(.width(16)) wordmux
-(
-	.sel(offset[3:1]),
-	.x0(cachelinemux_out[15:0]),
-	.x1(cachelinemux_out[31:16]),
-	.x2(cachelinemux_out[47:32]),
-	.x3(cachelinemux_out[63:48]),
-	.x4(cachelinemux_out[79:64]),
-	.x5(cachelinemux_out[95:80]),
-	.x6(cachelinemux_out[111:96]),
-	.x7(cachelinemux_out[127:112]),
-	.f(mem_rdata)
-);
-
-data_selector datawrite
-(
-	.w0(cachelinemux_out[15:0]),
-	.w1(cachelinemux_out[31:16]),
-	.w2(cachelinemux_out[47:32]),
-	.w3(cachelinemux_out[63:48]),
-	.w4(cachelinemux_out[79:64]),
-	.w5(cachelinemux_out[95:80]),
-	.w6(cachelinemux_out[111:96]),
-	.w7(cachelinemux_out[127:112]),
-	.cpu_data(mem_wdata),
-	.mem_byte_enable(mem_byte_enable),
-	.mem_write(mem_write),
-	.offset(offset),
-	.out(datawrite_out)
-);
-
 mux2 #(.width(128)) datawritemux
 (
 	 .sel(datawritemux_sel),
-	 .a(datawrite_out),
+	 .a(l2_mem_wdata),
 	 .b(pmem_rdata),
 	 .f(datawritemux_out)
 );
 
-mux2 #(.width(9)) tagmux
+mux2 #(.width(6)) tagmux
 (
 	.sel(cachelinemux_sel),
 	.a(tag0_out),

@@ -26,9 +26,9 @@ lc3b_c_tag tag;
 lc3b_c_index index;
 lc3b_c_offset offset;
 
-assign tag = mem_address[15:7];
-assign index = mem_address[6:4];
-assign offset = mem_address[3:0];
+assign tag = mem_address[15:13];
+assign index = mem_address[12:10];
+assign offset = mem_address[9:7];
 
 logic dirty0_write;
 logic dirty0_in;

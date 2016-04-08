@@ -1,5 +1,5 @@
 import lc3b_types::*;
-module array #(parameter width = 128)
+module array #(parameter width = 128, parameter height = 8)
 (
     input clk,
     input write,
@@ -7,7 +7,7 @@ module array #(parameter width = 128)
     input [width-1:0] datain,
     output logic [width-1:0] dataout
 );
-logic [width-1:0] data [7:0];
+logic [width-1:0] data [height-1:0];
 /* Initialize array */
 initial
 begin

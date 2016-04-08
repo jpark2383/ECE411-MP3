@@ -19,6 +19,11 @@ typedef logic  [8:0] lc3b_c_tag;
 typedef logic  [3:0] lc3b_c_offset;
 typedef logic  [2:0] lc3b_c_index;
 
+//l2 cache data types
+typedef logic [5:0] lc3b_c2_tag;
+typedef logic [5:0] lc3b_c2_index;
+typedef logic [3:0] lc3b_c2_offset;
+
 typedef struct packed {
 	lc3b_reg dest;
 	logic ir_5;
