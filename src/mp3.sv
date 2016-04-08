@@ -4,13 +4,13 @@ module mp3
 (
     input clk,
 
-    /* l2 signals */
-	 input l2_mem_resp,
-	 input lc3b_cache_line l2_rdata,
-	 output lc3b_word l2_address,
-	 output logic l2_read,
-	 output logic l2_write,
-	 output lc3b_cache_line l2_wdata
+    /* pmem signals */
+	 input pmem_resp,
+	 input lc3b_cache_line pmem_rdata,
+	 output lc3b_word pmem_address,
+	 output logic pmem_read,
+	 output logic pmem_write,
+	 output lc3b_cache_line pmem_wdata
 	 
 );
 
@@ -25,6 +25,13 @@ logic resp_b;
 logic [15:0] rdata_b;
 		
 logic [1:0] mem_byte_enable;
+
+lc3b_word l2_address;
+lc3b_cache_line l2_wdata;
+lc3b_cache_line l2_rdata;
+logic l2_mem_resp;
+logic l2_read;
+logic l2_write;
 		
 datapath datapath_obj(.*, 
 							 .mem_rdata_0(rdata_a), 
@@ -57,6 +64,22 @@ l1_cache l1_cache_obj
 	.l2_write
 );
 
+l2_cache l2_cache_obj
+(
+	.clk,
+	.mem_address(l2_address),
+	.mem_wdata(l2_wdata),
+	.mem_read(l2_read),
+	.mem_write(l2_write),
+	.pmem_rdata,
+	.pmem_resp,
+	.mem_rdata(l2_rdata),
+	.mem_resp(l2_mem_resp),
+	.pmem_address,
+	.pmem_wdata,
+	.pmem_read,
+	.pmem_write
+);
 
 
 endmodule : mp3
