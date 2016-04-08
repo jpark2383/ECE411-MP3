@@ -5,15 +5,14 @@ module l2_cache
 	 input clk,
 	
 	 input lc3b_word mem_address,
-	 input lc3b_word mem_wdata,
+	 input lc3b_cache_line l2_mem_wdata,
 	 input mem_read,
 	 input mem_write,
-	 input lc3b_mem_wmask mem_byte_enable,
-	 
+	 	 
 	 input lc3b_cache_line pmem_rdata,
 	 input pmem_resp,
 	 
-	 output lc3b_word mem_rdata,
+	 output lc3b_cache_line l2_mem_rdata,
 	 output logic mem_resp,
 	
     output lc3b_word pmem_address,
@@ -22,13 +21,13 @@ module l2_cache
 	 output pmem_write
 );	
 
-lc3b_c_tag tag;
-lc3b_c_index index;
-lc3b_c_offset offset;
+lc3b_c2_tag tag;
+lc3b_c2_index index;
+lc3b_c2_offset offset;
 
-assign tag = mem_address[15:13];
-assign index = mem_address[12:10];
-assign offset = mem_address[9:7];
+assign tag = mem_address[15:10];
+assign index = mem_address[9:4];
+assign offset = mem_address[3:0];
 
 logic dirty0_write;
 logic dirty0_in;

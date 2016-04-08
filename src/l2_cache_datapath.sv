@@ -10,7 +10,6 @@ module l2_cache_datapath
 	 input lc3b_c2_offset offset,
 	 
 	 input lc3b_cache_line l2_mem_wdata,
-	 input lc3b_mem_wmask mem_byte_enable,
 	 input lc3b_cache_line pmem_rdata,
 	 
 	 input pmem_addressmux_sel,
@@ -101,7 +100,7 @@ array #(.width(128),.height(64)) data0
 	.dataout(data0_out)
 );
 
-comparator tag0comp
+comparator #(.width(6)) tag0comp
 (
 	.a(tag0_out),
 	.b(tag),
@@ -144,7 +143,7 @@ array #(.width(128),. height(64)) data1
 	.dataout(data1_out)
 );
 
-comparator tag1comp
+comparator #(.width(6)) tag1comp
 (
 	.a(tag1_out),
 	.b(tag),
