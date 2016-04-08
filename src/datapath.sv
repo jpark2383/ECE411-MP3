@@ -435,7 +435,7 @@ cccomp cccomp_obj
 register pc
 (
 	.clk,
-	.load(~stall),
+	.load(~stall && hazard_pc),
 	.in(pc_mux_out),
 	.out(pc_out)
 );
@@ -462,10 +462,16 @@ register ir
 (
 	.clk,
 	.load(~stall),
-	.in(mem_rdata_0_out),
+	.in(hazard_ir),
 	.out(ir_out)
 );
-	
+hazard hazard_obj
+(
+  .clk,
+  .ir_val(mem_rdata_0_out),
+  .ir_out(hazard_ir),
+  .pc_ld(hazard_pc)
+);
 
 
 endmodule : datapath
