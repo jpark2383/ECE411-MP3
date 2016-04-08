@@ -2,7 +2,7 @@ import lc3b_types::*;
 
 module datapath
 (
-    input clk,
+  input clk,
 	input mem_resp_0, mem_resp_1,
 	input lc3b_word mem_rdata_0, mem_rdata_1,
 
@@ -46,7 +46,9 @@ lc3b_word 	pc_out,
 			lea_mux_out,
 			mem_rdata_1_out,
 			mem_rdata_0_out,
-			jsr_mux_out;
+			jsr_mux_out,
+      forward_sr1,
+      forward_sr2;
 lc3b_reg dest_mux_out;
 lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
@@ -133,6 +135,20 @@ register id_pc
 	.load(~stall),
 	.in(pc_out),
 	.out(id_pc_out)
+);
+register #(.width(3)) sr1_addr
+(
+  .clk,
+  .load(~stall),
+  .in(ir_out[8:6]),
+  .out(sr1_addr_out)
+);
+register #(.width(3)) sr2_addr
+(
+  .clk,
+  .load(~stall),
+  .in(src_b_mux_out),
+  .out(sr2_addr_out)
 );
 register sr1
 (
@@ -296,11 +312,25 @@ register ex_alu_reg
 	.in(lea_mux_out),
 	.out(ex_alu_out)
 );
+data_forwarding forward_obj
+(
+  .sr1(sr1_out),
+  .sr2(sr2_out),
+  .sr1_addr(sr1_addr_out),
+  .sr2_addr(sr2_addr_out),
+  .ex_dest(ex_passed_reg_out.dest),
+  .wb_dest(dest_mux_out),
+  .ex_data(ex_alu_reg_out),
+  .wb_data(wb_mux_out),
+  .sr1_out(foward_sr1),
+  .sr2_out(foward_sr2)
+);
+
 alu alu_obj
 (
 	.aluop(id_ctrl_out.aluop),
-	.a(sr1_out),
-	.b(sr2_mux_out),
+	.a(forward_sr1),
+	.b(forward_sr2),
 	.f(alu_out)
 );
 mux2 sr2_mux
