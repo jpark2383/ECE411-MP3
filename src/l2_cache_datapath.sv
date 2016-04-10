@@ -9,7 +9,7 @@ module l2_cache_datapath
 	 input lc3b_c2_index index,
 	 input lc3b_c2_offset offset,
 	 
-	 input lc3b_cache_line l2_mem_wdata,
+	 input lc3b_cache_line mem_wdata,
 	 input lc3b_cache_line pmem_rdata,
 	 
 	 input pmem_addressmux_sel,
@@ -37,7 +37,7 @@ module l2_cache_datapath
 	 output logic hit, full, valid0, valid1,
 	 output lc3b_cache_line pmem_wdata,
 	 output lc3b_word pmem_address,
-	 output lc3b_cache_line l2_mem_rdata,
+	 output lc3b_cache_line mem_rdata,
 	 output logic mem_resp,
 	 output logic lru,
 	 output logic dirty0, dirty1
@@ -48,7 +48,7 @@ lc3b_cache_line cachelinemux_out;
 lc3b_cache_line datawrite_out;
 lc3b_cache_line datawritemux_out;
 
-lc3b_c_tag tag0_out, tag1_out, tagout;
+lc3b_c2_tag tag0_out, tag1_out, tagout;
 
 logic tag0comp_out, tag1comp_out;
 logic valid0_out, valid1_out;
@@ -62,9 +62,9 @@ logic data0w;
 logic data1w;
 assign data0w = data0_write | (hit0 & mem_write);
 assign data1w = data1_write | (hit1 & mem_write);
-assign l2_mem_rdata = cachelinemux_out;
+assign mem_rdata = cachelinemux_out;
 
-array #(.width(1)) dirty0arr
+array #(.width(1), .height(6)) dirty0arr
 (
 	.clk(clk),
 	.write(dirty0_write | (hit0 & mem_write)),
@@ -73,7 +73,7 @@ array #(.width(1)) dirty0arr
 	.dataout(dirty0_out)
 );
 
-array #(.width(1)) valid0arr
+array #(.width(1), .height(6)) valid0arr
 (
 	.clk(clk),
 	.write(valid0_write),
@@ -82,7 +82,7 @@ array #(.width(1)) valid0arr
 	.dataout(valid0_out)
 );
 
-array #(.width(6)) tag0
+array #(.width(6), .height(6)) tag0
 (
 	.clk(clk),
 	.write(tag0_write),
@@ -91,7 +91,7 @@ array #(.width(6)) tag0
 	.dataout(tag0_out)
 );
 
-array #(.width(128),.height(64)) data0
+array #(.width(128),.height(6)) data0
 (
 	.clk(clk),
 	.write(data0w),
@@ -107,7 +107,7 @@ comparator #(.width(6)) tag0comp
 	.c(tag0comp_out)
 );
 
-array #(.width(1)) dirty1arr
+array #(.width(1), .height(6)) dirty1arr
 (
 	.clk(clk),
 	.write(dirty1_write | (hit1 & mem_write)),
@@ -116,7 +116,7 @@ array #(.width(1)) dirty1arr
 	.dataout(dirty1_out)
 );
 
-array #(.width(1)) valid1arr
+array #(.width(1), .height(6)) valid1arr
 (
 	.clk(clk),
 	.write(valid1_write),
@@ -125,7 +125,7 @@ array #(.width(1)) valid1arr
 	.dataout(valid1_out)
 );
 
-array #(.width(6)) tag1
+array #(.width(6), .height(6)) tag1
 (
 	.clk(clk),
 	.write(tag1_write),
@@ -134,7 +134,7 @@ array #(.width(6)) tag1
 	.dataout(tag1_out)
 );
 
-array #(.width(128),. height(64)) data1
+array #(.width(128),. height(6)) data1
 (
 	.clk(clk),
 	.write(data1w),
@@ -150,7 +150,7 @@ comparator #(.width(6)) tag1comp
 	.c(tag1comp_out)
 );
 
-array #(.width(1)) LRU
+array #(.width(1), .height(6)) LRU
 (
 	.clk(clk),
 	.write(lru_write),
@@ -184,7 +184,7 @@ mux2 #(.width(128)) cachelinemux
 mux2 #(.width(128)) datawritemux
 (
 	 .sel(datawritemux_sel),
-	 .a(l2_mem_wdata),
+	 .a(mem_wdata),
 	 .b(pmem_rdata),
 	 .f(datawritemux_out)
 );
