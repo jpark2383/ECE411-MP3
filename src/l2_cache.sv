@@ -5,14 +5,14 @@ module l2_cache
 	 input clk,
 	
 	 input lc3b_word mem_address,
-	 input lc3b_cache_line l2_mem_wdata,
+	 input lc3b_cache_line mem_wdata,
 	 input mem_read,
 	 input mem_write,
 	 	 
 	 input lc3b_cache_line pmem_rdata,
 	 input pmem_resp,
 	 
-	 output lc3b_cache_line l2_mem_rdata,
+	 output lc3b_cache_line mem_rdata,
 	 output logic mem_resp,
 	
     output lc3b_word pmem_address,
@@ -53,12 +53,12 @@ logic lru;
 logic dirty0, dirty1;
 logic pmem_addressmux_sel;
 
-cache_control controller
+l2_cache_control controller
 (
 	 .*
 );
 
-cache_datapath datapath
+l2_cache_datapath datapath
 (
 	 .*
 );

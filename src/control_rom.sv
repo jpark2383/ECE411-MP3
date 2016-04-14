@@ -90,8 +90,7 @@ begin
 			ctrl.sext_sel = 3'b101;
 			ctrl.load_regfile = 1;
 		end
-		op_ldi: begin
-		end
+
 		op_lea: begin
 			ctrl.load_regfile = 1;
 			ctrl.load_cc = 1;
@@ -114,8 +113,6 @@ begin
 		op_stb: begin
 			ctrl.ex_write_sel = 1;
 			ctrl.src_b_mux_sel = 1;
-		end
-		op_sti: begin
 		end
 		op_trap: begin
 			ctrl.load_regfile = 1;

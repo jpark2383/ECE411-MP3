@@ -48,7 +48,9 @@ lc3b_word 	pc_out,
 			mem_rdata_0_out,
 			jsr_mux_out,
       forward_sr1,
-      forward_sr2;
+      forward_sr2,
+		hazard_ir,
+		ex_alu_reg_out;
 lc3b_reg dest_mux_out;
 lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
@@ -60,8 +62,10 @@ lc3b_control_word gen_ctrl_out,
    					ex_ctrl_out, 
 						mem_ctrl_out;
 logic mem_ready_0, mem_ready_1;
-logic [2:0] src_b_mux_out;
-logic stall;
+logic [2:0] src_b_mux_out,
+				sr1_addr_out,
+				sr2_addr_out;
+logic stall, hazard_pc;
 lc3b_nzp gencc_out,
 			cc_out,
 			cc_reg_out;
@@ -114,7 +118,7 @@ passed_rom gen_passed
 );
 
 // Second block
-register #(.width($bits(lc3b_control_word))) id_control
+register #(.width($bits(lc3b_control_word ))) id_control
 (
 	.clk,
 	.load(~stall),
@@ -267,8 +271,8 @@ register #(.width($bits(lc3b_passed_vals))) ex_passed_reg
 mux2 ex_wdata_mux
 (
 	.sel(id_ctrl_out.ex_write_sel),
-	.a(sr2_out),
-	.b({sr2_out[7:0], sr2_out[7:0]}),
+	.a(forward_sr2),
+	.b({forward_sr2[7:0], forward_sr2[7:0]}),
 	.f(ex_wdata_mux_out)
 );
 mux4 #(.width(2)) mem_byte_mux
@@ -316,28 +320,30 @@ data_forwarding forward_obj
 (
   .sr1(sr1_out),
   .sr2(sr2_out),
+  .wb_write(mem_ctrl_out.load_regfile),
+  .ex_write(ex_ctrl_out.load_regfile),
   .sr1_addr(sr1_addr_out),
   .sr2_addr(sr2_addr_out),
   .ex_dest(ex_passed_reg_out.dest),
   .wb_dest(dest_mux_out),
-  .ex_data(ex_alu_reg_out),
+  .ex_data(ex_alu_out),
   .wb_data(wb_mux_out),
-  .sr1_out(foward_sr1),
-  .sr2_out(foward_sr2)
+  .sr1_out(forward_sr1),
+  .sr2_out(forward_sr2)
 );
 
 alu alu_obj
 (
 	.aluop(id_ctrl_out.aluop),
 	.a(forward_sr1),
-	.b(forward_sr2),
+	.b(sr2_mux_out),
 	.f(alu_out)
 );
 mux2 sr2_mux
 (
 	.sel((!id_passed_reg_out.ir_5) && (id_ctrl_out.opcode == op_add || id_ctrl_out.opcode == op_and)),
 	.a(sext_reg_out),
-	.b(sr2_out),
+	.b(forward_sr2),
 	.f(sr2_mux_out)
 );
 adder2 pc_jmp_adder
@@ -469,6 +475,7 @@ hazard hazard_obj
 (
   .clk,
   .ir_val(mem_rdata_0_out),
+  .stall,
   .ir_out(hazard_ir),
   .pc_ld(hazard_pc)
 );
