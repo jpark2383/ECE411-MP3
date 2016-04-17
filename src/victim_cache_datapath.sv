@@ -26,7 +26,8 @@ module victim_cache_datapath
 	output logic full,
 	output lc3b_word l2_address,
 	output lc3b_cache_line l2_wdata,
-	output lc3b_cache_line l1_rdata
+	output lc3b_cache_line l1_rdata,
+	output logic l1_dirty
 );
 
 lc3b_cache_line inputreg_out;
@@ -160,7 +161,7 @@ lru_logic lru_update_logic
 
 mux2 #(.width(2)) selmux
 (
-	.sel(selmux_sel),
+	.sel(~hit),
 	.a(line_hit),
 	.b(lru_line),
 	.f(linemux_sel)
@@ -235,6 +236,7 @@ assign full = (valid0 & valid1 & valid2 & valid3);
 assign dirty = dirtymux_out;
 assign l2_address = {l2_tagmuxout, 7'b0};
 assign l2_wdata = outputreg_out;
-assign l1_rdata = outputregmux_out;
+assign l1_rdata = outputregmux_out[127:0];
+assign l1_dirty = outputregmux_out[128];
 
 endmodule : victim_cache_datapath

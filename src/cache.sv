@@ -2,24 +2,27 @@ import lc3b_types::*;
 
 module cache
 (
-	 input clk,
+	input clk,
 	
-	 input lc3b_word mem_address,
-	 input lc3b_word mem_wdata,
-	 input mem_read,
-	 input mem_write,
-	 input lc3b_mem_wmask mem_byte_enable,
+	input lc3b_word mem_address,
+	input lc3b_word mem_wdata,
+	input mem_read,
+	input mem_write,
+	input lc3b_mem_wmask mem_byte_enable,
 	 
-	 input lc3b_cache_line pmem_rdata,
-	 input pmem_resp,
+	input lc3b_cache_line pmem_rdata,
+	input pmem_resp,
 	 
-	 output lc3b_word mem_rdata,
-	 output logic mem_resp,
+	output lc3b_word mem_rdata,
+	output logic mem_resp,
 	
     output lc3b_word pmem_address,
-	 output lc3b_cache_line pmem_wdata,
-	 output pmem_read,
-	 output pmem_write
+	output lc3b_cache_line pmem_wdata,
+	output pmem_read,
+	output pmem_write,
+
+	input dirty_in,
+	output logic dirty_out
 );	
 
 lc3b_c_tag tag;

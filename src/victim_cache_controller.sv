@@ -5,25 +5,24 @@ module victim_cache_controller
 	input clk,
 
 	input hit,
-	input full,
 	input [1:0] line_hit,
 	input dirty,
 	input full,
 	input l1_read, l1_write,
 	input l2_mem_resp,
 
-	output inputreg_load,
-	output outputreg_load,
-	output selmux_sel,
-	output lru_load,
-	output linehitmux_sel,
-	output cacheslot_load,
-	output l2_tagmux_sel,
-	output mem_resp,
-	output l2_read,
-	output l2_write,
-	output outputregmux_sel,
-	output valid_in,
+	output logic inputreg_load,
+	output logic outputreg_load,
+	output logic selmux_sel,
+	output logic lru_load,
+	output logic linehitmux_sel,
+	output logic cacheslot_load,
+	output logic l2_tagmux_sel,
+	output logic mem_resp,
+	output logic l2_read,
+	output logic l2_write,
+	output logic outputregmux_sel,
+	output logic valid_in,
 );
 
 enum int unsigned {
@@ -104,9 +103,9 @@ begin
 		idle: begin
 			if(hit && l1_write)
 				next_state = swap;
-			else if(~hit && l1_write && dirty) 
+			else if(~hit && l1_write && full && dirty) 
 				next_state = write_l2;
-			else if(~hit && l1_write && ~dirty) 
+			else if(~hit && l1_write && (~full | ~dirty)) 
 				next_state = write_victim;
 			else 
 				next_state = idle;
@@ -133,6 +132,11 @@ begin
 				next_state = read_l2;
 		end
 
+		write_victim: begin
+			next_state = idle;
+		end
+
+		default: ;
 	endcase
 end
 
