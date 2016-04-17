@@ -1,0 +1,20 @@
+module encoder2
+(
+	input [3:0] in,
+	output logic [1:0] out
+);
+
+always_comb
+begin
+	out = 0;
+	if(in == 4'b0001)
+		out = 2'b00;
+	else if(in == 4'b0010)
+		out = 2'b01;
+	else if(in == 4'b0100)
+		out = 2'b10;
+	else if(in == 4'b1000)
+		out = 2'b11;
+end
+
+endmodule : encoder2
