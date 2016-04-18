@@ -22,7 +22,7 @@ module victim_cache_controller
 	output logic l2_read,
 	output logic l2_write,
 	output logic outputregmux_sel,
-	output logic valid_in,
+	output logic valid_in
 );
 
 enum int unsigned {
@@ -47,7 +47,7 @@ begin
 	outputregmux_sel = 0;
 	valid_in = 0;
 
-	case(state) begin
+	case(state)
 		idle: begin
 			if(hit && l1_write) begin	/* inreg  <= l1 cache; outreg <= victim hit line */
 				inputreg_load = 1;
@@ -99,7 +99,7 @@ end
 always_comb
 begin
 	next_state = idle;
-	case(state) begin
+	case(state)
 		idle: begin
 			if(hit && l1_write)
 				next_state = swap;

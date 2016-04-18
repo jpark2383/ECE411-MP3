@@ -117,7 +117,7 @@ arbiter cache_arbiter
 	.dcache_dirty_in,
 	.dcache_dirty_out,
 	.l2_dirty_in,
-	.l2_dirty_out,
+	.l2_dirty_out
 );
 
 

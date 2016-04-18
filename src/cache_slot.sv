@@ -14,11 +14,11 @@ module cache_slot
 	output lc3b_v_tag tag,
 	output logic hit,
 	output logic valid,
-	output logic dirty,
+	output logic dirty
 );
 
 lc3b_cache_line data_out;
-lc3_v_tag tag_out;
+lc3b_v_tag tag_out;
 logic tageq;
 logic valid_out;
 logic dirty_out;
@@ -36,7 +36,7 @@ register #(.width(1)) validreg
 	.clk,
 	.load(write),
 	.in(valid_in),
-	.out(valid_out),
+	.out(valid_out)
 );
 
 register #(.width(9)) tagreg

@@ -211,7 +211,7 @@ register #(.width(129)) outputreg
 (
 	.clk,
 	.load(outputreg_load),
-	.in(dirtymux_out, linemux_out})),
+	.in({dirtymux_out, linemux_out}),
 	.out(outputreg_out)
 );
 

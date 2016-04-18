@@ -34,7 +34,6 @@ logic hit;
 logic [1:0] line_hit;
 logic dirty;
 logic full;
-lc3b_word l2_address;
 
 victim_cache_datapath datapath
 (

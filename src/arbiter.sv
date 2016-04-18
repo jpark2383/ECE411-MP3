@@ -33,7 +33,7 @@ module arbiter
 	output logic dcache_dirty_in,
 	input dcache_dirty_out,
 	input l2_dirty_in,
-	output logic l2_dirty_out,
+	output logic l2_dirty_out
 );
 
 enum int unsigned {
