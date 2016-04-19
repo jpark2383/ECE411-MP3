@@ -33,7 +33,8 @@ module l1_cache
 	output logic l2_write,
 	
 	input l2_dirty_in,
-	output logic l2_dirty_out
+	output logic l2_dirty_out,
+	output lc3b_word cpu_address
 );
 
 lc3b_word icache_address;
@@ -117,7 +118,10 @@ arbiter cache_arbiter
 	.dcache_dirty_in,
 	.dcache_dirty_out,
 	.l2_dirty_in,
-	.l2_dirty_out
+	.l2_dirty_out,
+	.icpu_address(icache_mem_address),
+	.dcpu_address(dcache_mem_address),
+	.cpu_address
 );
 
 

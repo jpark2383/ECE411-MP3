@@ -1,4 +1,3 @@
-import lc3b_types::*;
 
 module victim_cache_controller
 (
@@ -46,15 +45,17 @@ begin
 	l2_tagmux_sel = 0;
 	outputregmux_sel = 0;
 	valid_in = 0;
+	l2_write = 0;
+	l2_read = 0;
 
 	case(state)
 		idle: begin
-			if(hit && l1_write) begin	/* inreg  <= l1 cache; outreg <= victim hit line */
+			if(hit && l1_write) begin	/* inreg  <= L1 cache; outreg <= victim hit line */
 				inputreg_load = 1;
 				outputreg_load = 1;
 				lru_load = 1;
 			end
-			else if(~hit && l1_write) begin /* inreg  <= l1 cache; outreg <= victim lru line */
+			else if(~hit && l1_write) begin /* inreg  <= L1 cache; outreg <= victim lru line */
 				inputreg_load = 1;
 				outputreg_load = 1;
 				selmux_sel = 1;
@@ -70,7 +71,7 @@ begin
 			end
 		end
 
-		write_l2: begin		/* write dirty lru line to L2 */
+		write_l2: begin		/* write dirty lru line to L2 and load L1 line to victim*/
 			selmux_sel = 1;
 			l2_write = 1;
 			if(l2_mem_resp) begin
@@ -80,7 +81,7 @@ begin
 			end
 		end 
 
-		read_l2: begin		/* read line from l2 */
+		read_l2: begin		/* read line from L2 and forward to L1*/
 			l2_read = 1;
 			l2_tagmux_sel = 1;
 			outputregmux_sel = 1;
@@ -89,6 +90,12 @@ begin
 				linehitmux_sel = 1;
 				mem_resp = 1;
 			end
+		end
+
+		write_victim: begin	/* load L1 line to victim */
+			valid_in = 1;
+			cacheslot_load = 1;
+			mem_resp = 1;
 		end
 
 		default: ;
@@ -107,6 +114,8 @@ begin
 				next_state = write_l2;
 			else if(~hit && l1_write && (~full | ~dirty)) 
 				next_state = write_victim;
+			else if(l1_read)
+				next_state = read_l2;
 			else 
 				next_state = idle;
 		end
@@ -134,6 +143,8 @@ begin
 
 		write_victim: begin
 			next_state = idle;
+			if(l1_read)
+				next_state = read_l2;		
 		end
 
 		default: ;

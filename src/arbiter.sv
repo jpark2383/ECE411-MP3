@@ -33,7 +33,10 @@ module arbiter
 	output logic dcache_dirty_in,
 	input dcache_dirty_out,
 	input l2_dirty_in,
-	output logic l2_dirty_out
+	output logic l2_dirty_out,
+
+	input lc3b_word icpu_address, dcpu_address,
+	output lc3b_word cpu_address
 );
 
 enum int unsigned {
@@ -59,6 +62,8 @@ begin
 	icache_dirty_in = 0;
 	dcache_dirty_in = 0;
 	l2_dirty_out = 0;
+
+	cpu_address = 0;
 	
 	case(state)
 		idle: begin
@@ -79,7 +84,9 @@ begin
 
 			icache_dirty_in = l2_dirty_in;
 			dcache_dirty_in = 0;
-			l2_dirty_out = icache_dirty_out;	
+			l2_dirty_out = icache_dirty_out;
+
+			cpu_address = icpu_address;
 		end
 		
 		dcache: begin
@@ -97,6 +104,8 @@ begin
 			icache_dirty_in = 0;
 			dcache_dirty_in = l2_dirty_in;
 			l2_dirty_out = dcache_dirty_out;
+
+			cpu_address = dcpu_address;
 		end
 		
 		default: ;

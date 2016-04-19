@@ -31,7 +31,7 @@ module victim_cache_datapath
 );
 
 lc3b_cache_line inputreg_out;
-lc3b_cache_line outputreg_out;
+logic [128:0] outputreg_out;
 
 lc3b_cache_line line0, line1, line2, line3;
 lc3b_v_tag tag0, tag1, tag2, tag3;
@@ -39,7 +39,7 @@ logic dirty0, dirty1, dirty2, dirty3;
 logic valid0, valid1, valid2, valid3;
 logic hit0, hit1, hit2, hit3;
 
-logic [7:0] lru_in, lru_out, lru_update;
+logic [7:0] lru_in, lru_out;
 
 logic [1:0] linemux_sel;
 lc3b_cache_line linemux_out;
@@ -69,7 +69,8 @@ cache_slot slot0
 	.write(cacheslot_load & en[0]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(tag),
+	.tag_in(l1_tag),
+	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line0),
 	.tag(tag0),
@@ -84,7 +85,8 @@ cache_slot slot1
 	.write(cacheslot_load & en[1]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(tag),
+	.tag_in(l1_tag),
+	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line1),
 	.tag(tag1),
@@ -99,7 +101,8 @@ cache_slot slot2
 	.write(cacheslot_load & en[2]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(tag),
+	.tag_in(l1_tag),
+	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line2),
 	.tag(tag2),
@@ -114,7 +117,8 @@ cache_slot slot3
 	.write(cacheslot_load & en[3]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(tag),
+	.tag_in(l1_tag),
+	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line3),
 	.tag(tag3),
@@ -156,7 +160,7 @@ lru_logic lru_update_logic
 (
 	.lru_in(lru_out),
 	.line_hit(linehitmux_out),
-	.lru_out(lru_update)
+	.lru_out(lru_in)
 );
 
 mux2 #(.width(2)) selmux
@@ -219,11 +223,11 @@ mux2 #(.width(129)) outputregmux
 (
 	.sel(outputregmux_sel),
 	.a(outputreg_out),
-	.b({0, l2_rdata}),
+	.b({1'b0, l2_rdata}),
 	.f(outputregmux_out)
 );
 
-mux2 #(.width(16)) l2_tagmux
+mux2 #(.width(12)) l2_tagmux
 (
 	.sel(l2_tagmux_sel),
 	.a(tagmux_out),
@@ -234,7 +238,7 @@ mux2 #(.width(16)) l2_tagmux
 assign hit = (hit0 | hit1 | hit2 | hit3);
 assign full = (valid0 & valid1 & valid2 & valid3);
 assign dirty = dirtymux_out;
-assign l2_address = {l2_tagmuxout, 7'b0};
+assign l2_address = {l2_tagmuxout, 4'b0};
 assign l2_wdata = outputreg_out;
 assign l1_rdata = outputregmux_out[127:0];
 assign l1_dirty = outputregmux_out[128];

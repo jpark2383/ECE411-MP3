@@ -31,6 +31,8 @@ lc3b_cache_line l2_rdata;
 logic l2_mem_resp;
 logic l2_read;
 logic l2_write;
+
+lc3b_word cpu_address;
 		
 datapath datapath_obj(.*, 
 							 .mem_rdata_0(rdata_a), 
@@ -41,8 +43,6 @@ datapath datapath_obj(.*,
 
 logic l2_dirty_in;
 logic l2_dirty_out;
-
-assign l2_dirty_in = 0;
 
 l1_cache l1_cache_obj
 (
@@ -68,16 +68,38 @@ l1_cache l1_cache_obj
 	.l2_read,
 	.l2_write,
 	.l2_dirty_in,
-	.l2_dirty_out
+	.l2_dirty_out,
+	.cpu_address
 );
 
+victim_cache victim_cache_obj
+(
+	.clk,
+	.tag(cpu_address[15:4]),
+	.l1_wdata(l2_wdata),
+	.l1_write(l2_write), 
+	.l1_read(l2_read),
+	.l1_tag(l2_address[15:4]),
+	.dirty_in(l2_dirty_out),
+	.l1_rdata(l2_rdata),
+	.l1_dirty(l2_dirty_in),
+	.mem_resp(l2_mem_resp),
+	.l2_rdata(pmem_rdata),
+	.l2_mem_resp(pmem_resp),
+	.l2_address(pmem_address),
+	.l2_wdata(pmem_wdata),
+	.l2_write(pmem_write), 
+	.l2_read(pmem_read)
+);
 
+/*
 assign pmem_address = l2_address;
 assign pmem_read = l2_read; 
 assign pmem_write = l2_write;
 assign pmem_wdata = l2_wdata;
 assign l2_rdata = pmem_rdata;
 assign l2_mem_resp = pmem_resp;
+*/
 
 /*
 l2_cache l2_cache_obj

@@ -24,7 +24,7 @@ typedef logic [5:0] lc3b_c2_tag;
 typedef logic [5:0] lc3b_c2_index;
 typedef logic [3:0] lc3b_c2_offset;
 
-typedef logic [8:0] lc3b_v_tag;
+typedef logic [11:0] lc3b_v_tag;
 
 typedef struct packed {
 	lc3b_reg dest;
