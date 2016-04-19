@@ -34,14 +34,12 @@ assign index = mem_address[6:4];
 assign offset = mem_address[3:0];
 
 logic dirty0_write;
-logic dirty0_in;
 logic valid0_write;
 logic valid0_in;
 logic tag0_write;
 logic data0_write;
  
 logic dirty1_write;
-logic dirty1_in;
 logic valid1_write;
 logic valid1_in;
 logic tag1_write;

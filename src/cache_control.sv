@@ -1,44 +1,42 @@
 
 module cache_control
 (
-	 input clk,
+	input clk,
 
 		/* memory signals from cpu */
-	 input mem_write,
-	 input mem_read,
+	input mem_write,
+	input mem_read,
 	 
 		/* memory signals from  physical memory */
-	 input pmem_resp,
+	input pmem_resp,
 
 		/* signals from cache datapath */
-	 input hit,
-	 input full,
-	 input valid0, valid1,
-	 input lru,
-	 input dirty0, dirty1,
+	input hit,
+	input full,
+	input valid0, valid1,
+	input lru,
+	input dirty0, dirty1,
 	
 		/* output signals to physical memory */
-	 output logic pmem_write,
-	 output logic pmem_read,
+	output logic pmem_write,
+	output logic pmem_read,
 	 
 		/* output signals to cache datapath */
-	 output logic dirty0_write,
-	 output logic dirty0_in,
-	 output logic valid0_write,
-	 output logic valid0_in,
-	 output logic tag0_write,
-	 output logic data0_write,
+	output logic dirty0_write,
+	output logic valid0_write,
+	output logic valid0_in,
+	output logic tag0_write,
+	output logic data0_write,
 	 
-	 output logic dirty1_write,
-	 output logic dirty1_in,
-	 output logic valid1_write,
-	 output logic valid1_in,
-	 output logic tag1_write,
-	 output logic data1_write,
+	output logic dirty1_write,
+	output logic valid1_write,
+	output logic valid1_in,
+	output logic tag1_write,
+	output logic data1_write,
 	 
-	 output logic lru_write,
-	 output logic datawritemux_sel,
-	 output logic pmem_addressmux_sel
+	output logic lru_write,
+	output logic datawritemux_sel,
+	output logic pmem_addressmux_sel
 );
 
 enum int unsigned {
@@ -54,11 +52,9 @@ begin
 	datawritemux_sel = 0;
 	valid0_in = 0;
 	valid0_write = 0;
-	dirty0_in = 0;
 	dirty0_write = 0;
 	valid1_in = 0;
 	valid1_write = 0;
-	dirty1_in = 0;
 	dirty1_write = 0;
 	tag1_write = 0;
 	data1_write= 0;
@@ -75,15 +71,14 @@ begin
 		end
 		
 		write_back: begin
-			if((lru == 0 && dirty0 == 0) || (lru == 1 && dirty1 == 0)) begin
+		/*	if((lru == 0 && dirty0 == 0) || (lru == 1 && dirty1 == 0)) begin
 				pmem_write = 0;
 				pmem_addressmux_sel = 0;
 			end
-			else begin
-				pmem_write = 1;
-				pmem_addressmux_sel = 1;
-			end
-				
+			else*/
+			pmem_write = 1;
+			pmem_addressmux_sel = 1;
+			
 			if(lru == 0) begin
 				valid0_in = 0;
 				valid0_write = 1;
@@ -101,7 +96,6 @@ begin
 			if(pmem_resp == 1 && (valid0 == 0)) begin
 				valid0_in = 1;
 				valid0_write = 1;
-				dirty0_in = 0;
 				dirty0_write = 1;
 				tag0_write = 1;
 				data0_write = 1;
@@ -109,7 +103,6 @@ begin
 			else if(pmem_resp == 1 && (valid1 == 0)) begin
 				valid1_in = 1;
 				valid1_write = 1;
-				dirty1_in = 0;
 				dirty1_write = 1;
 				tag1_write = 1;
 				data1_write= 1;
@@ -133,9 +126,9 @@ begin
 		end
 		
 		write_back: begin
-			if((lru == 0 && dirty0 == 0) || (lru == 1 && dirty1 == 0))
+		/*	if((lru == 0 && dirty0 == 0) || (lru == 1 && dirty1 == 0))
 				next_state = read_pmem;
-			else if(pmem_resp == 0)
+			else*/ if(pmem_resp == 0)
 				next_state = write_back;
 			else if(pmem_resp & mem_read)
 				next_state = read_pmem;

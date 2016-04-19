@@ -109,7 +109,7 @@ begin
 	next_state = idle;
 	case(state)
 		idle: begin
-			if(icache_read)
+			if(icache_read | icache_write)
 				next_state = icache;
 			else if(dcache_read | dcache_write)
 				next_state = dcache;

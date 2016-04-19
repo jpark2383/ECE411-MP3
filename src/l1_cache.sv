@@ -58,7 +58,7 @@ cache icache
 	.pmem_rdata(icache_rdata),
 	.pmem_resp(arb_icache_mem_resp),
 	.pmem_address(icache_address),
-	.pmem_wdata(),
+	.pmem_wdata(icache_wdata),
 	.pmem_read(icache_read),
 	.pmem_write(icache_write),
 	.dirty_in(icache_dirty_in),
