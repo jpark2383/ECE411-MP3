@@ -140,7 +140,7 @@ decoder2 dec2
 	.out(en)
 );
 
-register #(.width(8)) lru 
+lruarray lru 
 (
 	.clk,
 	.load(lru_load),
