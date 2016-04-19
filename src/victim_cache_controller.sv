@@ -96,6 +96,8 @@ begin
 			valid_in = 1;
 			cacheslot_load = 1;
 			mem_resp = 1;
+			linehitmux_sel = 1;
+			lru_load = 1;
 		end
 
 		default: ;
@@ -105,7 +107,7 @@ end
 /* next_state logic */ 
 always_comb
 begin
-	next_state = idle;
+	next_state = state;
 	case(state)
 		idle: begin
 			if(hit && l1_write)
@@ -116,35 +118,28 @@ begin
 				next_state = write_victim;
 			else if(l1_read)
 				next_state = read_l2;
-			else 
-				next_state = idle;
 		end
 
 		swap: begin
 			if(l1_read)
 				next_state = idle;
-			else
-				next_state = swap;
 		end
 
 		write_l2: begin
 			if(l2_mem_resp) 
 				next_state = read_l2;
-			else
-				next_state = write_l2;
 		end
 
 		read_l2: begin
 			if(l2_mem_resp)
 				next_state = idle;
-			else
-				next_state = read_l2;
 		end
 
 		write_victim: begin
-			next_state = idle;
 			if(l1_read)
-				next_state = read_l2;		
+				next_state = read_l2;
+			else
+				next_state = idle;
 		end
 
 		default: ;

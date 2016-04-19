@@ -239,7 +239,7 @@ assign hit = (hit0 | hit1 | hit2 | hit3);
 assign full = (valid0 & valid1 & valid2 & valid3);
 assign dirty = dirtymux_out;
 assign l2_address = {l2_tagmuxout, 4'b0};
-assign l2_wdata = outputreg_out;
+assign l2_wdata = outputreg_out[127:0];
 assign l1_rdata = outputregmux_out[127:0];
 assign l1_dirty = outputregmux_out[128];
 
