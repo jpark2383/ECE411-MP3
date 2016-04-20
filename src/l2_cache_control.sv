@@ -1,44 +1,31 @@
 
 module l2_cache_control
 (
-	 input clk,
+	input clk,
 
-		/* memory signals from cpu */
-	 input mem_write,
-	 input mem_read,
-	 
-		/* memory signals from  physical memory */
-	 input pmem_resp,
+	/* memory signals from L1 */
+	input mem_write,
+	input mem_read,
 
-		/* signals from cache datapath */
-	 input hit,
-	 input full,
-	 input valid0, valid1,
-	 input lru,
-	 input dirty0, dirty1,
-	
-		/* output signals to physical memory */
-	 output logic pmem_write,
-	 output logic pmem_read,
-	 
-		/* output signals to cache datapath */
-	 output logic dirty0_write,
-	 output logic dirty0_in,
-	 output logic valid0_write,
-	 output logic valid0_in,
-	 output logic tag0_write,
-	 output logic data0_write,
-	 
-	 output logic dirty1_write,
-	 output logic dirty1_in,
-	 output logic valid1_write,
-	 output logic valid1_in,
-	 output logic tag1_write,
-	 output logic data1_write,
-	 
-	 output logic lru_write,
-	 output logic datawritemux_sel,
-	 output logic pmem_addressmux_sel
+	/* memory signals from  physical memory */
+	input pmem_resp,
+
+	/* signals from cache datapath */
+	input hit,
+	input full,
+	input dirty,
+
+	/* output signals to physical memory */
+	output logic pmem_write,
+	output logic pmem_read,
+
+	/* output signals to cache datapath */
+	output logic write,
+	output logic dirty_in,
+	output logic valid_in,
+	output logic pseudoarray_load,
+	output logic pmemaddressmux_sel,
+
 );
 
 enum int unsigned {
@@ -49,70 +36,33 @@ enum int unsigned {
 
 always_comb
 begin
+	write = 0;
+	dirty_in = 0;
+	valid_in = 0;
+	pseudoarray_load = 0;
+	pmemaddressmux_sel = 0;
 	pmem_write = 0;
 	pmem_read = 0;
-	datawritemux_sel = 0;
-	valid0_in = 0;
-	valid0_write = 0;
-	dirty0_in = 0;
-	dirty0_write = 0;
-	valid1_in = 0;
-	valid1_write = 0;
-	dirty1_in = 0;
-	dirty1_write = 0;
-	tag1_write = 0;
-	data1_write= 0;
-	tag0_write = 0;
-	data0_write = 0;
-	lru_write = 0;
-	pmem_addressmux_sel = 0;
-	
+
 	case(state)
 		idle: begin
 			if(hit) begin
-				lru_write = (mem_write | mem_read);
+				write = mem_write;
+				dirty_in = mem_write;
+				pseudoarray_load = mem_write | mem_read;
 			end
 		end
 		
 		write_back: begin
-			if((lru == 0 && dirty0 == 0) || (lru == 1 && dirty1 == 0)) begin
-				pmem_write = 0;
-				pmem_addressmux_sel = 0;
-			end
-			else begin
-				pmem_write = 1;
-				pmem_addressmux_sel = 1;
-			end
-				
-			if(lru == 0) begin
-				valid0_in = 0;
-				valid0_write = 1;
-			end
-			else if(lru == 1) begin
-				valid1_in = 0;
-				valid1_write = 1;
-			end
+			pmem_write = 1;
 		end
 		
 		read_pmem: begin
 			pmem_read = 1;
-			datawritemux_sel = 1;
-			pmem_addressmux_sel = 0;
-			if(pmem_resp == 1 && (valid0 == 0)) begin
-				valid0_in = 1;
-				valid0_write = 1;
-				dirty0_in = 0;
-				dirty0_write = 1;
-				tag0_write = 1;
-				data0_write = 1;
-			end
-			else if(pmem_resp == 1 && (valid1 == 0)) begin
-				valid1_in = 1;
-				valid1_write = 1;
-				dirty1_in = 0;
-				dirty1_write = 1;
-				tag1_write = 1;
-				data1_write= 1;
+			if(pmem_resp) begin
+				write = 1;
+				pseudoarray_load = 1;
+				valid_in = 1;
 			end
 		end
 		
@@ -122,30 +72,29 @@ end
 
 always_comb
 begin
-	next_state = idle;
+	next_state = state;
 	case(state)
 		idle: begin
-			if((mem_read | mem_write) & full & (~hit)) begin
-					next_state = write_back;
-			end
-			else if((mem_read | mem_write) & ~hit)
+			if((mem_read | mem_write) & ~hit & (~full | ~dirty)) begin
 				next_state = read_pmem;
+			end
+			else if((mem_read | mem_write) & ~hit) begin
+				next_state = write_back;
+			end
 		end
 		
 		write_back: begin
-			if((lru == 0 && dirty0 == 0) || (lru == 1 && dirty1 == 0))
+			if(pmem_resp)
 				next_state = read_pmem;
-			else if(pmem_resp == 0)
+			else
 				next_state = write_back;
-			else if(pmem_resp & mem_read)
-				next_state = read_pmem;
 		end
 		
 		read_pmem: begin
-			if(pmem_resp == 0)
-				next_state = read_pmem;
-			else if(pmem_resp & mem_read)
+			if(pmem_resp)
 				next_state = idle;
+			else
+				next_state = read_pmem;
 		end
 		
 		default: ;
@@ -154,8 +103,7 @@ end
 
 
 always_ff @(posedge clk)
-begin: next_state_assignment
-    /* Assignment of next state on clock edge */
+begin:
 	 state <= next_state;
 end
 

@@ -2,219 +2,205 @@ import lc3b_types::*;
 
 module l2_cache_datapath
 (
-	 input clk,
-	 
-	 input lc3b_word mem_address,
-	 input lc3b_c2_tag tag,
-	 input lc3b_c2_index index,
-	 input lc3b_c2_offset offset,
-	 
-	 input lc3b_cache_line mem_wdata,
-	 input lc3b_cache_line pmem_rdata,
-	 
-	 input pmem_addressmux_sel,
-	 
-	 input dirty0_write,
-	 input dirty0_in,
-	 input valid0_write,
-	 input valid0_in,
-	 input tag0_write,
-  	 input data0_write,
- 
-	 input dirty1_write,
-	 input dirty1_in,
-	 input valid1_write,
-	 input valid1_in,
-	 input tag1_write,
-	 input data1_write,
+	input clk,
 
-	 input lru_write,
+	input lc3b_c2_tag tag,
+	input lc3b_c2_index index,
+	input lc3b_cache_line mem_wdata,
 
-	 input datawritemux_sel,
-	 
-	 input mem_write,
-	 
-	 output logic hit, full, valid0, valid1,
-	 output lc3b_cache_line pmem_wdata,
-	 output lc3b_word pmem_address,
-	 output lc3b_cache_line mem_rdata,
-	 output logic mem_resp,
-	 output logic lru,
-	 output logic dirty0, dirty1
+	input lc3b_cache_line pmem_rdata,
+
+	input write, valid_in, dirty_in,
+	input pseudoarray_load,
+	input pmem_addressmuxsel,
+
+	output logic hit,
+	output logic full,
+	output logic dirty,
+	output lc3b_word pmem_address,
+	output lc3b_cache_line mem_rdata,
+	output lc3b_cache_line pmem_wdata,
+	output logic mem_resp
 );
 
-lc3b_cache_line data0_out, data1_out;
-lc3b_cache_line cachelinemux_out;
-lc3b_cache_line datawrite_out;
-lc3b_cache_line datawritemux_out;
+logic dirty0, dirty1, dirty2, dirty3;
+logic valid0, valid1, valid2, valid3, valid, full;
+logic hit0, hit1, hit2, hit3, hit;
+lc3b_c2_tag tag0, tag1, tag2, tag3, tagmux_out;
+lc3b_cache_line data0, data1, data2, data3, datamux_out, wdatamux_out;
 
-lc3b_c2_tag tag0_out, tag1_out, tagout;
+logic [1:0] line_hit, lru_line;
 
-logic tag0comp_out, tag1comp_out;
-logic valid0_out, valid1_out;
-logic dirty0_out, dirty1_out;
-logic hit0, hit1;
-logic cachelinemux_sel;
-logic lru_out;
-logic selmux_out;
+logic [2:0] lru_update, lru_out,
 
-logic data0w;
-logic data1w;
-assign data0w = data0_write | (hit0 & mem_write);
-assign data1w = data1_write | (hit1 & mem_write);
-assign mem_rdata = cachelinemux_out;
+logic [3:0] en;
 
-array #(.width(1), .height(6)) dirty0arr
+mux2 #(.width(128)) wdatamux
 (
-	.clk(clk),
-	.write(dirty0_write | (hit0 & mem_write)),
-	.index(index),
-	.datain(dirty0_in | (hit0 & mem_write)),
-	.dataout(dirty0_out)
+	.sel(hit),
+	.a(pmem_rdata),
+	.b(mem_wdata),
+	.f(wdatamux_out)
 );
 
-array #(.width(1), .height(6)) valid0arr
+cache_way way0
 (
-	.clk(clk),
-	.write(valid0_write),
-	.index(index),
-	.datain(valid0_in),
-	.dataout(valid0_out)
+	.clk,
+	.write(write & en[0]),
+	.index,
+	.tag_in(tag),
+	.data_in(wdatamux_out),
+	.valid_in,
+	.dirty_in,
+	.dirty(dirty0),
+	.valid(valid0),
+	.hit(hit0),
+	.tag(tag0),
+	.data(data0)
 );
 
-array #(.width(6), .height(6)) tag0
+cache_way way1
 (
-	.clk(clk),
-	.write(tag0_write),
-	.index(index),
-	.datain(tag),
-	.dataout(tag0_out)
+	.clk,
+	.write(write & en[1]),
+	.index,
+	.tag_in(tag),
+	.data_in(wdatamux_out),
+	.valid_in,
+	.dirty_in,
+	.dirty(dirty1),
+	.valid(valid1),
+	.hit(hit1),
+	.tag(tag1),
+	.data(data1)
 );
 
-array #(.width(128),.height(6)) data0
+cache_way way2
 (
-	.clk(clk),
-	.write(data0w),
-	.index(index),
-	.datain(datawritemux_out),
-	.dataout(data0_out)
+	.clk,
+	.write(write & en[2]),
+	.index,
+	.tag_in(tag),
+	.data_in(wdatamux_out),
+	.valid_in,
+	.dirty_in,
+	.dirty(dirty2),
+	.valid(valid2),
+	.hit(hit2),
+	.tag(tag2),
+	.data(data2)
 );
 
-comparator #(.width(6)) tag0comp
+cache_way way3
 (
-	.a(tag0_out),
-	.b(tag),
-	.c(tag0comp_out)
+	.clk,
+	.write(write & en[0]),
+	.index,
+	.tag_in(tag),
+	.data_in(wdatamux_out),
+	.valid_in,
+	.dirty_in,
+	.dirty(dirty3),
+	.valid(valid3),
+	.hit(hit3),
+	.tag(tag3),
+	.data(data3)
 );
 
-array #(.width(1), .height(6)) dirty1arr
+encoder2 enc2
 (
-	.clk(clk),
-	.write(dirty1_write | (hit1 & mem_write)),
-	.index(index),
-	.datain(dirty1_in | (hit1 & mem_write)),
-	.dataout(dirty1_out)
+	.in({hit3, hit2, hit1, hit0}),
+	.out(line_hit)
 );
 
-array #(.width(1), .height(6)) valid1arr
+decoder2 dec2
 (
-	.clk(clk),
-	.write(valid1_write),
-	.index(index),
-	.datain(valid1_in),
-	.dataout(valid1_out)
+	.in(lineselmux_out),
+	.enable(1'b1),
+	.out(en)
 );
 
-array #(.width(6), .height(6)) tag1
+register #(.width(3)) pseudoarray
 (
-	.clk(clk),
-	.write(tag1_write),
-	.index(index),
-	.datain(tag),
-	.dataout(tag1_out)
+	.clk,
+	.load(pseudoarray_load),
+	.in(lru_update),
+	.out(lru_out)
 );
 
-array #(.width(128),. height(6)) data1
+pseudo_lru_logic updatelogic
 (
-	.clk(clk),
-	.write(data1w),
-	.index(index),
-	.datain(datawritemux_out),
-	.dataout(data1_out)
+	.lru_in(lru_out), 
+	.line_hit(line_hit),
+	.lru_out(lru_update)
 );
 
-comparator #(.width(6)) tag1comp
+lru_replace_logic lrulogic
 (
-	.a(tag1_out),
-	.b(tag),
-	.c(tag1comp_out)
+	.lru_in(lru_out),
+	.lru(lru_line)
 );
 
-array #(.width(1), .height(6)) LRU
+mux2 #(.width(2)) lineselmux
 (
-	.clk(clk),
-	.write(lru_write),
-	.index(index),
-	.datain(~cachelinemux_sel),
-	.dataout(lru_out)
+	.sel(hit),
+	.a(lru_line),
+	.b(line_hit),
+	.f(lineselmux_out)
 );
 
-encoder1 encoder
+mux4 #(.width(1)) dirtymux
 (
-	.in({hit1, hit0}),
-	.out(selmux_out)
+	.sel(lineselmux_out),
+	.a(dirty0),
+	.b(dirty1),
+	.c(dirty2),
+	.d(dirty3),
+	.f(dirty)
 );
 
-mux2 #(.width(1)) selmux
+mux4 #(.width(1)) validmux
 (
-	 .sel(hit),
-	 .a(lru_out),
-	 .b(selmux_out),
-	 .f(cachelinemux_sel)
+	.sel(lineselmux_out),
+	.a(valid0),
+	.b(valid1),
+	.c(valid2),
+	.d(valid3),
+	.f(valid)
 );
 
-mux2 #(.width(128)) cachelinemux
+mux4 #(.width()) tagmux
 (
-	.sel(cachelinemux_sel),
-	.a(data0_out),
-	.b(data1_out),
-	.f(cachelinemux_out)
+	.sel(lineselmux_out),
+	.a(tag0),
+	.b(tag1),
+	.c(tag2),
+	.d(tag3),
+	.f(tagmux_out)
 );
 
-mux2 #(.width(128)) datawritemux
+mux4 #(.width(128)) datamux
 (
-	 .sel(datawritemux_sel),
-	 .a(mem_wdata),
-	 .b(pmem_rdata),
-	 .f(datawritemux_out)
-);
-
-mux2 #(.width(6)) tagmux
-(
-	.sel(cachelinemux_sel),
-	.a(tag0_out),
-	.b(tag1_out),
-	.f(tagout)
+	.sel(lineselmux_out),
+	.a(data0),
+	.b(data1),
+	.c(data2),
+	.d(data3),
+	.f(datamux_out)
 );
 
 mux2 #(.width(16)) pmem_addressmux
 (
-	 .sel(pmem_addressmux_sel),
-	 .a(mem_address),
-	 .b({tagout, index, 4'b0}),
-	 .f(pmem_address)
+	.sel(pmem_addressmuxsel),
+	.a(tagmux_out),
+	.b({tag, index, 4'b0000})
+	.f(pmem_address)
 );
 
-assign hit0 = (tag0comp_out & valid0_out);
-assign hit1 = (tag1comp_out & valid1_out);
-assign hit = hit0 | hit1;
-assign full = (valid0_out & valid1_out);
-assign valid0 = valid0_out;
-assign valid1 = valid1_out;
-assign pmem_wdata = cachelinemux_out;
+assign hit = (hit0 & hit1 & hit2 & hit3);
+assign full = (valid0 & valid1 & valid2 & valid3);
+assign mem_rdata = datamux_out;
+assign pmem_wdata = datamux_out;
 assign mem_resp = hit;
-assign lru = lru_out;
-assign dirty0 = dirty0_out;
-assign dirty1 = dirty1_out;
 
 endmodule : l2_cache_datapath
