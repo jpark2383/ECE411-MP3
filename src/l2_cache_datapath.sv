@@ -24,14 +24,14 @@ module l2_cache_datapath
 );
 
 logic dirty0, dirty1, dirty2, dirty3;
-logic valid0, valid1, valid2, valid3, valid, full;
-logic hit0, hit1, hit2, hit3, hit;
+logic valid0, valid1, valid2, valid3, valid;
+logic hit0, hit1, hit2, hit3;
 lc3b_c2_tag tag0, tag1, tag2, tag3, tagmux_out;
 lc3b_cache_line data0, data1, data2, data3, datamux_out, wdatamux_out;
 
-logic [1:0] line_hit, lru_line;
+logic [1:0] line_hit, lru_line, lineselmux_out;
 
-logic [2:0] lru_update, lru_out,
+logic [2:0] lru_update, lru_out;
 
 logic [3:0] en;
 
@@ -94,7 +94,7 @@ cache_way way2
 cache_way way3
 (
 	.clk,
-	.write(write & en[0]),
+	.write(write & en[3]),
 	.index,
 	.tag_in(tag),
 	.data_in(wdatamux_out),
@@ -169,7 +169,7 @@ mux4 #(.width(1)) validmux
 	.f(valid)
 );
 
-mux4 #(.width()) tagmux
+mux4 #(.width(9)) tagmux
 (
 	.sel(lineselmux_out),
 	.a(tag0),
@@ -192,12 +192,12 @@ mux4 #(.width(128)) datamux
 mux2 #(.width(16)) pmem_addressmux
 (
 	.sel(pmem_addressmuxsel),
-	.a(tagmux_out),
-	.b({tag, index, 4'b0000})
+	.a({tag, index, 4'b0000}),
+	.b({tagmux_out, index, 4'b0000}),
 	.f(pmem_address)
 );
 
-assign hit = (hit0 & hit1 & hit2 & hit3);
+assign hit = (hit0 | hit1 | hit2 | hit3);
 assign full = (valid0 & valid1 & valid2 & valid3);
 assign mem_rdata = datamux_out;
 assign pmem_wdata = datamux_out;

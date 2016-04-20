@@ -24,8 +24,7 @@ module l2_cache_control
 	output logic dirty_in,
 	output logic valid_in,
 	output logic pseudoarray_load,
-	output logic pmemaddressmux_sel,
-
+	output logic pmem_addressmuxsel
 );
 
 enum int unsigned {
@@ -40,7 +39,7 @@ begin
 	dirty_in = 0;
 	valid_in = 0;
 	pseudoarray_load = 0;
-	pmemaddressmux_sel = 0;
+	pmem_addressmuxsel = 0;
 	pmem_write = 0;
 	pmem_read = 0;
 
@@ -55,6 +54,7 @@ begin
 		
 		write_back: begin
 			pmem_write = 1;
+			pmem_addressmuxsel = 1;
 		end
 		
 		read_pmem: begin
@@ -101,9 +101,8 @@ begin
 	endcase
 end
 
-
 always_ff @(posedge clk)
-begin:
+begin
 	 state <= next_state;
 end
 

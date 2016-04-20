@@ -8,7 +8,7 @@ module lru_replace_logic
 always_comb
 begin
 	lru = 0;
-	case(lru_in)
+	casex(lru_in)
 		3'bx11: begin
 			lru = 2'b00;
 		end

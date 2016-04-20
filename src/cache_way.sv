@@ -15,7 +15,7 @@ module cache_way
 	output logic valid,
 	output logic hit,
 	output lc3b_c2_tag tag,
-	output lc3b_cache_line data,
+	output lc3b_cache_line data
 );
 
 logic tageq;
@@ -24,7 +24,7 @@ array #(.width(1)) dirty_array
 (
 	.clk,
 	.write,
-	.index,
+	.index(index),
 	.datain(dirty_in),
 	.dataout(dirty)
 );
@@ -33,16 +33,16 @@ array #(.width(1)) valid_array
 (
 	.clk,
 	.write,
-	.index,
+	.index(index),
 	.datain(valid_in),
 	.dataout(valid)
 );
 
-array #(.width()) tag_array
+array #(.width(9)) tag_array
 (
 	.clk,
 	.write,
-	.index,
+	.index(index),
 	.datain(tag_in),
 	.dataout(tag)
 );
@@ -51,15 +51,15 @@ array #(.width(128)) data_array
 (
 	.clk,
 	.write,
-	.index,
+	.index(index),
 	.datain(data_in),
 	.dataout(data)
 );
 
 comparator #(.width()) tagcomp
 (
-	.a(tag)
-	.b(tag_in)
+	.a(tag),
+	.b(tag_in),
 	.c(tageq)
 );
 

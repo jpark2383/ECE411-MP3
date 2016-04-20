@@ -23,16 +23,14 @@ module l2_cache
 
 lc3b_c2_tag tag;
 lc3b_c2_index index;
-lc3b_c2_offset offset;
 
-assign tag = mem_address[15:10];
-assign index = mem_address[9:4];
-assign offset = mem_address[3:0];
+assign tag = mem_address[15:7];
+assign index = mem_address[6:4];
 
 logic hit, full, dirty;
 logic write, dirty_in, valid_in;
 logic pseudoarray_load;
-logic pmemaddressmux_sel;
+logic pmem_addressmuxsel;
 
 l2_cache_control controller
 (
