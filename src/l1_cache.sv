@@ -10,6 +10,9 @@ module l1_cache
 	input icache_mem_read,
 	input icache_mem_write,
 	input [1:0] icache_mem_byte_enable,
+	
+	input lc3b_word l2_total,
+	input lc3b_word l2_miss, 
 
 	output logic icache_mem_resp,
 	output lc3b_word icache_mem_rdata,
@@ -38,7 +41,7 @@ logic icache_read;
 logic icache_write;
 lc3b_cache_line icache_rdata, icache_wdata;
 logic arb_icache_mem_resp;
-
+lc3b_word l1i_miss, l1i_total;
 cache icache
 (
 	.clk,
@@ -54,7 +57,13 @@ cache icache
 	.pmem_address(icache_address),
 	.pmem_wdata(),
 	.pmem_read(icache_read),
-	.pmem_write(icache_write)
+	.pmem_write(icache_write),
+	.i_miss(),
+	.i_total(),
+	.l2_miss(),
+	.l2_total(),
+	.total_count(l1i_total),
+	.miss_count(l1i_miss)
 );
 
 lc3b_word dcache_address;
@@ -78,7 +87,13 @@ cache dcache
 	.pmem_address(dcache_address),
 	.pmem_wdata(dcache_wdata),
 	.pmem_read(dcache_read),
-	.pmem_write(dcache_write)
+	.pmem_write(dcache_write),
+	.i_miss(l1i_miss),
+	.i_total(l1i_total),
+	.l2_miss,
+	.l2_total,
+	.total_count(),
+	.miss_count()
 );
 
 arbiter cache_arbiter

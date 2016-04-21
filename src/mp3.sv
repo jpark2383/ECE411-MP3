@@ -32,6 +32,8 @@ lc3b_cache_line l2_rdata;
 logic l2_mem_resp;
 logic l2_read;
 logic l2_write;
+lc3b_word l2_total;
+lc3b_word l2_miss;
 		
 datapath datapath_obj(.*, 
 							 .mem_rdata_0(rdata_a), 
@@ -62,7 +64,9 @@ l1_cache l1_cache_obj
 	.l2_address,
 	.l2_wdata,
 	.l2_read,
-	.l2_write
+	.l2_write,
+	.l2_miss,
+	.l2_total
 );
 
 l2_cache l2_cache_obj
@@ -79,7 +83,9 @@ l2_cache l2_cache_obj
 	.pmem_address,
 	.pmem_wdata,
 	.pmem_read,
-	.pmem_write
+	.pmem_write,
+	.l2_miss,
+	.l2_total
 );
  
 
