@@ -19,7 +19,7 @@ module branch
     output[1:0] branch_pred_take
 );
 
-logic [33:0] btb_line_out, btb_line_in;
+logic [31:0] btb0_out, btb1_out, btb2_out, btb3_out;
 logic [1:0] branch_pred_new;
 always_comb begin
     branch_pred_new = branch_pred_in;
@@ -31,7 +31,8 @@ end
 
 assign btb_line_in = {branch_pc, branch_target, branch_pred_new};
 assign branch_pred_target = btb_line_out[17:2];
-assign branch_pred_take = (btb_line_out[33:18] == pc) && btb_line_out[1];
+assign branch_pred_take = (btb_line_out[31:16] == pc) && branch_pred_take[1];
+
 register #(.width(2)) bhr
 (
     .clk,
@@ -39,14 +40,22 @@ register #(.width(2)) bhr
     .in({branch_taken, bhr_out[1]}),
     .out(bhr_out)
 );
-
-array2 #(.width(34), .height(32)) btb
+array2 #(.width(32), .height(8)) btb0
+(
+    .clk,
+    .write(branch_load),
+    .index_in(branch_pc[4:2]),
+    .index_out(pc[4:2]),
+    .datain({branch_pc, branch_target}),
+    .dataout(btb0_out)
+)
+array2 #(.width(2), .height(32)) bht
 (
     .clk,
     .write(branch_load),
     .index_in({bhr_in, branch_pc[5:3]}),
     .index_out({bhr_out, branch_pc[5:3]}),
-    .datain(btb_line_in),
-    .dataout(btb_line_out)
+    .datain(branch_pred_new),
+    .dataout(branch_pred_out)
 );
 endmodule:branch
