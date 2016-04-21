@@ -5,17 +5,16 @@ module mp3
     input clk,
 
     /* pmem signals */
-	 input pmem_resp,
-	 input lc3b_cache_line pmem_rdata,
-	 output lc3b_word pmem_address,
-	 output logic pmem_read,
-	 output logic pmem_write,
-	 output lc3b_cache_line pmem_wdata
-	 
+	input pmem_resp,
+	input lc3b_cache_line pmem_rdata,
+	output lc3b_word pmem_address,
+	output logic pmem_read,
+	output logic pmem_write,
+	output lc3b_cache_line pmem_wdata
 );
 
-lc3b_word 	mem_address_0, mem_address_1,
-				mem_wdata_0, mem_wdata_1;
+lc3b_word mem_address_0, mem_address_1,
+			mem_wdata_0, mem_wdata_1;
 logic mem_read_0, mem_read_1,
 		mem_write_0, mem_write_1;
 
@@ -32,6 +31,8 @@ lc3b_cache_line l2_rdata;
 logic l2_mem_resp;
 logic l2_read;
 logic l2_write;
+
+lc3b_word cpu_address;
 		
 datapath datapath_obj(.*, 
 							 .mem_rdata_0(rdata_a), 
@@ -39,6 +40,9 @@ datapath datapath_obj(.*,
 							 .mem_resp_0(resp_a),
 							 .mem_resp_1(resp_b));
 
+
+logic l2_dirty_in;
+logic l2_dirty_out;
 
 l1_cache l1_cache_obj
 (
@@ -62,9 +66,42 @@ l1_cache l1_cache_obj
 	.l2_address,
 	.l2_wdata,
 	.l2_read,
-	.l2_write
+	.l2_write,
+	.l2_dirty_in,
+	.l2_dirty_out,
+	.cpu_address
 );
 
+victim_cache victim_cache_obj
+(
+	.clk,
+	.tag(cpu_address[15:4]),
+	.l1_wdata(l2_wdata),
+	.l1_write(l2_write), 
+	.l1_read(l2_read),
+	.l1_tag(l2_address[15:4]),
+	.dirty_in(l2_dirty_out),
+	.l1_rdata(l2_rdata),
+	.l1_dirty(l2_dirty_in),
+	.mem_resp(l2_mem_resp),
+	.l2_rdata(pmem_rdata),
+	.l2_mem_resp(pmem_resp),
+	.l2_address(pmem_address),
+	.l2_wdata(pmem_wdata),
+	.l2_write(pmem_write), 
+	.l2_read(pmem_read)
+);
+
+/*
+assign pmem_address = l2_address;
+assign pmem_read = l2_read; 
+assign pmem_write = l2_write;
+assign pmem_wdata = l2_wdata;
+assign l2_rdata = pmem_rdata;
+assign l2_mem_resp = pmem_resp;
+*/
+
+/*
 l2_cache l2_cache_obj
 (
 	.clk,
@@ -81,7 +118,7 @@ l2_cache l2_cache_obj
 	.pmem_read,
 	.pmem_write
 );
- 
+*/ 
 
 
 endmodule : mp3
