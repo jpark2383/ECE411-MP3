@@ -32,8 +32,12 @@ module l1_cache
 	input l2_mem_resp,
 	output lc3b_word l2_address,
 	output lc3b_cache_line l2_wdata,
-	output logic l2_read, 
-	output logic l2_write
+	output logic l2_read,
+	output logic l2_write,
+	
+	input l2_dirty_in,
+	output logic l2_dirty_out,
+	output lc3b_word cpu_address
 );
 
 lc3b_word icache_address;
@@ -42,6 +46,10 @@ logic icache_write;
 lc3b_cache_line icache_rdata, icache_wdata;
 logic arb_icache_mem_resp;
 lc3b_word l1i_miss, l1i_total;
+
+logic icache_dirty_out, icache_dirty_in;
+logic dcache_dirty_out, dcache_dirty_in;
+
 cache icache
 (
 	.clk,
@@ -55,7 +63,7 @@ cache icache
 	.pmem_rdata(icache_rdata),
 	.pmem_resp(arb_icache_mem_resp),
 	.pmem_address(icache_address),
-	.pmem_wdata(),
+	.pmem_wdata(icache_wdata),
 	.pmem_read(icache_read),
 	.pmem_write(icache_write),
 	.i_miss(),
@@ -64,6 +72,8 @@ cache icache
 	.l2_total(),
 	.total_count(l1i_total),
 	.miss_count(l1i_miss)
+	.dirty_in(icache_dirty_in),
+	.dirty_out(icache_dirty_out)
 );
 
 lc3b_word dcache_address;
@@ -94,6 +104,8 @@ cache dcache
 	.l2_total,
 	.total_count(),
 	.miss_count()
+	.dirty_in(dcache_dirty_in),
+	.dirty_out(dcache_dirty_out)
 );
 
 arbiter cache_arbiter
@@ -116,7 +128,16 @@ arbiter cache_arbiter
 	.l2_address,
 	.l2_wdata,
 	.l2_read,
-	.l2_write
+	.l2_write,
+	.icache_dirty_in,
+	.icache_dirty_out,
+	.dcache_dirty_in,
+	.dcache_dirty_out,
+	.l2_dirty_in,
+	.l2_dirty_out,
+	.icpu_address(icache_mem_address),
+	.dcpu_address(dcache_mem_address),
+	.cpu_address
 );
 
 

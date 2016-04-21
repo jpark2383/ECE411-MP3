@@ -26,7 +26,17 @@ module arbiter
 	output lc3b_word l2_address,
 	output lc3b_cache_line l2_wdata,
 	output logic l2_read,
-	output logic l2_write
+	output logic l2_write,
+
+	output logic icache_dirty_in,
+	input icache_dirty_out,
+	output logic dcache_dirty_in,
+	input dcache_dirty_out,
+	input l2_dirty_in,
+	output logic l2_dirty_out,
+
+	input lc3b_word icpu_address, dcpu_address,
+	output lc3b_word cpu_address
 );
 
 enum int unsigned {
@@ -48,6 +58,12 @@ begin
 	
 	dcache_mem_resp = 0;
 	dcache_rdata = 0;
+
+	icache_dirty_in = 0;
+	dcache_dirty_in = 0;
+	l2_dirty_out = 0;
+
+	cpu_address = 0;
 	
 	case(state)
 		idle: begin
@@ -65,6 +81,12 @@ begin
 			
 			dcache_mem_resp = 0;
 			dcache_rdata = 0;
+
+			icache_dirty_in = l2_dirty_in;
+			dcache_dirty_in = 0;
+			l2_dirty_out = icache_dirty_out;
+
+			cpu_address = icpu_address;
 		end
 		
 		dcache: begin
@@ -78,6 +100,12 @@ begin
 			
 			dcache_mem_resp = l2_mem_resp;
 			dcache_rdata = l2_rdata;
+
+			icache_dirty_in = 0;
+			dcache_dirty_in = l2_dirty_in;
+			l2_dirty_out = dcache_dirty_out;
+
+			cpu_address = dcpu_address;
 		end
 		
 		default: ;
@@ -90,7 +118,7 @@ begin
 	next_state = idle;
 	case(state)
 		idle: begin
-			if(icache_read)
+			if(icache_read | icache_write)
 				next_state = icache;
 			else if(dcache_read | dcache_write)
 				next_state = dcache;

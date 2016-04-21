@@ -1,10 +1,9 @@
-import lc3b_types::*;
 
 module lru_logic
 (
 	input [7:0] lru_in,
 	input [1:0] line_hit,
-	output [7:0] lru_out
+	output logic [7:0] lru_out
 );
 
 logic [1:0] l1, l2, l3, l4;
