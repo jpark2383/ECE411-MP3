@@ -30,6 +30,9 @@ typedef struct packed {
 	lc3b_reg dest;
 	logic ir_5;
 	lc3b_nzp nzp;
+    logic[1:0] bhr_out;
+    lc3b_word branch_pred_target;
+    logic branch_hit;
 } lc3b_passed_vals;
 
 typedef enum bit [3:0] {

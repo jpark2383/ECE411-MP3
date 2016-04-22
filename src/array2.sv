@@ -6,7 +6,8 @@ module array2 #(parameter width = 16, parameter height = 32)
     input [4:0] index_in,
     input [4:0] index_out,
     input [width-1:0] datain,
-    output logic [width-1:0] dataout
+    output logic [width-1:0] dataout,
+    output logic [width-1:0] preview
 );
 logic [width-1:0] data [height-1:0];
 /* Initialize array */
@@ -24,5 +25,7 @@ begin
         data[index_in] = datain;
     end
 end
+
+assign preview = data[index_in];
 assign dataout = data[index_out];
 endmodule : array

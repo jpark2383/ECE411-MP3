@@ -69,7 +69,7 @@ logic stall, hazard_pc;
 lc3b_nzp gencc_out,
 			cc_out,
 			cc_reg_out;
-logic cccomp_out;
+logic cccomp_out, invalidate;
 assign mem_address_0 = pc_out;
 //assign mem_address_1 = ex_alu_out;
 assign mem_wdata_1 = ex_wdata_out;
@@ -114,7 +114,30 @@ control_rom gen_ctrl
 passed_rom gen_passed
 (
 	.ir(ir_out),
+    .branch(branch_reg_out)
 	.passed(gen_passed_out)
+);
+register #(.width(19)) branch_reg
+(
+    .clk,
+    .load(~stall),
+    .in({branch_bhr, branch_pred_target, branch_hit}),
+    .out(branch_reg_out)
+);
+assign branch_taken2 = ex_ctrl_out.pc_sel & {1'b1, cc};
+assign invalidate = (pc_mux_out != ex_passed_reg_out.branch_pred_target);
+branch branch_obj
+(
+    .clk,
+    .pc(pc_out),
+    .branch_load(ex_ctrl_out.pc_sel[1] | ex_ctrl_out.pc_sel[0]),
+    .branch_taken(branch_write[0] | branch_write[1]),
+    .branch_pc(ex_pc_out),
+    .branch_target(pc_mux_out),
+    .bhr_in(ex_passed_reg_out.bhr),
+    .bhr_out(branch_bhr),
+    .branch_pred_target,
+    .branch_hit
 );
 
 // Second block
@@ -122,7 +145,7 @@ register #(.width($bits(lc3b_control_word ))) id_control
 (
 	.clk,
 	.load(~stall),
-	.in(gen_ctrl_out),
+	.in(gen_ctrl_out & {$bits(lc3b_control_word){~invalidate}}),
 	.out(id_ctrl_out)
 );
 
@@ -257,7 +280,7 @@ register #(.width($bits(lc3b_control_word))) ex_control
 (
 	.clk,
 	.load(~stall),
-	.in(id_ctrl_out),
+	.in(id_ctrl_out & {$bits(lc3b_control_word){~invalidate}}),
 	.out(ex_ctrl_out)
 );
 
@@ -377,7 +400,7 @@ register #(.width($bits(lc3b_control_word))) mem_control
 (
 	.clk,
 	.load(~stall),
-	.in(ex_ctrl_out),
+	.in(ex_ctrl_out & {$bits(lc3b_control_word){~invalidate}}),
 	.out(mem_ctrl_out)
 );
 register #(.width($bits(lc3b_passed_vals))) mem_passed_reg
@@ -451,6 +474,13 @@ adder2 pc_adder
 	.b(16'd2),
 	.f(pc_adder_out)
 );
+mux2 branch_mux
+(
+    .sel(branch_bhr[1] & branch_hit),
+    .a(pc_adder_out),
+    .b(branch_pred_target),
+    .f(branch_mux_out)
+);
 
 logic cc;
 assign cc = (~ex_ctrl_out.check_cc | cccomp_out);
@@ -458,7 +488,7 @@ assign cc = (~ex_ctrl_out.check_cc | cccomp_out);
 mux4 pc_mux 
 (
 	.sel(ex_ctrl_out.pc_sel & {1'b1, cc}),
-	.a(pc_adder_out),
+	.a(branch_mux_out),
 	.b(ex_pc_out),
 	.c(ex_alu_out),
 	.d(mem_rdata_1_out),
