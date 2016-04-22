@@ -1,4 +1,3 @@
-
 module victim_cache_controller
 (
 	input clk,
@@ -21,7 +20,8 @@ module victim_cache_controller
 	output logic l2_read,
 	output logic l2_write,
 	output logic outputregmux_sel,
-	output logic valid_in
+	output logic valid_in,
+	output logic addr_regload
 );
 
 enum int unsigned {
@@ -42,7 +42,6 @@ begin
 	linehitmux_sel = 0;
 	cacheslot_load = 0;
 	mem_resp = 0;
-	l2_tagmux_sel = 0;
 	outputregmux_sel = 0;
 	valid_in = 0;
 	l2_write = 0;
@@ -83,7 +82,6 @@ begin
 
 		read_l2: begin		/* read line from L2 and forward to L1*/
 			l2_read = 1;
-			l2_tagmux_sel = 1;
 			outputregmux_sel = 1;
 			if(l2_mem_resp) begin
 				lru_load = 1;
@@ -104,6 +102,14 @@ begin
 	endcase
 end
 
+always_comb
+begin
+	l2_tagmux_sel = 0;
+	if(next_state == read_l2) begin
+		l2_tagmux_sel = 1;
+	end
+end
+
 /* next_state logic */ 
 always_comb
 begin
@@ -112,12 +118,14 @@ begin
 		idle: begin
 			if(hit && l1_write)
 				next_state = swap;
-			else if(~hit && l1_write && full && dirty) 
+			else if(~hit && l1_write && full && dirty) begin
 				next_state = write_l2;
+			end
 			else if(~hit && l1_write && (~full | ~dirty)) 
 				next_state = write_victim;
-			else if(l1_read)
+			else if(l1_read) begin
 				next_state = read_l2;
+			end
 		end
 
 		swap: begin
@@ -126,8 +134,9 @@ begin
 		end
 
 		write_l2: begin
-			if(l2_mem_resp) 
+			if(l2_mem_resp) begin
 				next_state = read_l2;
+			end
 		end
 
 		read_l2: begin
@@ -136,8 +145,9 @@ begin
 		end
 
 		write_victim: begin
-			if(l1_read)
+			if(l1_read) begin
 				next_state = read_l2;
+			end
 			else
 				next_state = idle;
 		end

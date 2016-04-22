@@ -27,7 +27,8 @@ module victim_cache_datapath
 	output lc3b_word l2_address,
 	output lc3b_cache_line l2_wdata,
 	output lc3b_cache_line l1_rdata,
-	output logic l1_dirty
+	output logic l1_dirty,
+	input addr_regload
 );
 
 lc3b_cache_line inputreg_out;
@@ -63,13 +64,22 @@ register #(.width(128)) inputreg
 	.out(inputreg_out)
 );
 
+lc3b_v_tag tagreg_out;
+register #(.width(12)) tagreg
+(
+	.clk,
+	.load(inputreg_load),
+	.in(l1_tag),
+	.out(tagreg_out)
+);
+
 cache_slot slot0
 (
 	.clk,
 	.write(cacheslot_load & en[0]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(l1_tag),
+	.tag_in(tagreg_out),
 	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line0),
@@ -85,7 +95,7 @@ cache_slot slot1
 	.write(cacheslot_load & en[1]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(l1_tag),
+	.tag_in(tagreg_out),
 	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line1),
@@ -101,7 +111,7 @@ cache_slot slot2
 	.write(cacheslot_load & en[2]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(l1_tag),
+	.tag_in(tagreg_out),
 	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line2),
@@ -117,7 +127,7 @@ cache_slot slot3
 	.write(cacheslot_load & en[3]),
 	.dirty_in(dirty_in),
 	.valid_in(valid_in),
-	.tag_in(l1_tag),
+	.tag_in(tagreg_out),
 	.tagcpu(tag),
 	.wdata(inputreg_out),
 	.line(line3),
@@ -235,10 +245,18 @@ mux2 #(.width(12)) l2_tagmux
 	.f(l2_tagmuxout)
 );
 
+register #(.width(16)) addr_reg
+(
+	.clk,
+	.load(1'b1),
+	.in({l2_tagmuxout, 4'b0000}),
+	.out(l2_address)
+);
+
 assign hit = (hit0 | hit1 | hit2 | hit3);
 assign full = (valid0 & valid1 & valid2 & valid3);
 assign dirty = dirtymux_out;
-assign l2_address = {l2_tagmuxout, 4'b0};
+//assign l2_address = {l2_tagmuxout, 4'b0};
 assign l2_wdata = outputreg_out[127:0];
 assign l1_rdata = outputregmux_out[127:0];
 assign l1_dirty = outputregmux_out[128];

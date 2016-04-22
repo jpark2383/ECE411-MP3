@@ -72,6 +72,29 @@ l1_cache l1_cache_obj
 	.cpu_address
 );
 
+/* WITHOUT L2 CACHE  
+victim_cache victim_cache_obj
+(
+	.clk,
+	.tag(cpu_address[15:4]),
+	.l1_wdata(l2_wdata),
+	.l1_write(l2_write), 
+	.l1_read(l2_read),
+	.l1_tag(l2_address[15:4]),
+	.dirty_in(l2_dirty_out),
+	.l1_rdata(l2_rdata),
+	.l1_dirty(l2_dirty_in),
+	.mem_resp(l2_mem_resp),
+	.l2_rdata(pmem_rdata),
+	.l2_mem_resp(pmem_resp),
+	.l2_address(pmem_address),
+	.l2_wdata(pmem_wdata),
+	.l2_write(pmem_write), 
+	.l2_read(pmem_read)
+);
+*/
+
+/* WITH L2 CACHE  */
 lc3b_cache_line rdata, wdata;
 logic w, r, resp;
 lc3b_word addr;
