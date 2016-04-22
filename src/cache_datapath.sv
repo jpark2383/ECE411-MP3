@@ -14,9 +14,7 @@ module cache_datapath
 	input lc3b_cache_line pmem_rdata,
 
 	input pmem_addressmux_sel,
-
 	input dirty_in,
-
 	input dirty0_write,
 	input valid0_write,
 	input valid0_in,

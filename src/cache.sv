@@ -17,8 +17,7 @@ module cache
 
 	 input lc3b_cache_line pmem_rdata,
 	 input pmem_resp,
-	input lc3b_cache_line pmem_rdata,
-	input pmem_resp,
+
 	 
 	output lc3b_word mem_rdata,
 	output logic mem_resp,
@@ -28,12 +27,7 @@ module cache
 	 output pmem_read,
 	 output pmem_write,
 	 output lc3b_word total_count,
-	 output lc3b_word miss_count
-    output lc3b_word pmem_address,
-	output lc3b_cache_line pmem_wdata,
-	output pmem_read,
-	output pmem_write,
-
+	 output lc3b_word miss_count,
 	input dirty_in,
 	output logic dirty_out
 );	
@@ -86,13 +80,11 @@ cache_datapath datapath
 	 .pmem_rdata,
 	 .pmem_addressmux_sel,
 	 .dirty0_write,
-	 .dirty0_in,
 	 .valid0_write,
 	 .valid0_in,
 	 .tag0_write,
 	 .data0_write,
 	 .dirty1_write,
-	 .dirty1_in,
 	 .valid1_write,
 	 .valid1_in,
 	 .tag1_write,
@@ -110,7 +102,8 @@ cache_datapath datapath
 	 .mem_resp,
 	 .lru,
 	 .dirty0,
-	 .dirty1
+	 .dirty1,
+	 .dirty_out
 );
 
 /* cache hit/miss counters */
