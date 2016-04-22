@@ -34,7 +34,6 @@ logic hit;
 logic [1:0] line_hit;
 logic dirty;
 logic full;
-logic addr_regload;
 
 victim_cache_datapath datapath
 (

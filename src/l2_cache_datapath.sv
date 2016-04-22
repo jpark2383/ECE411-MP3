@@ -197,10 +197,17 @@ mux2 #(.width(16)) pmem_addressmux
 	.f(pmem_address)
 );
 
+register #(.width(128)) outmux
+(
+	.clk,
+	.load(1'b1),
+	.in(datamux_out),
+	.out(pmem_wdata)
+);
+
 assign hit = (hit0 | hit1 | hit2 | hit3);
 assign full = (valid0 & valid1 & valid2 & valid3);
 assign mem_rdata = datamux_out;
-assign pmem_wdata = datamux_out;
 assign mem_resp = hit;
 
 endmodule : l2_cache_datapath

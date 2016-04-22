@@ -20,8 +20,7 @@ module victim_cache_controller
 	output logic l2_read,
 	output logic l2_write,
 	output logic outputregmux_sel,
-	output logic valid_in,
-	output logic addr_regload
+	output logic valid_in
 );
 
 enum int unsigned {

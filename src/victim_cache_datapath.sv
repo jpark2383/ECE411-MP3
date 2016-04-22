@@ -27,8 +27,7 @@ module victim_cache_datapath
 	output lc3b_word l2_address,
 	output lc3b_cache_line l2_wdata,
 	output lc3b_cache_line l1_rdata,
-	output logic l1_dirty,
-	input addr_regload
+	output logic l1_dirty
 );
 
 lc3b_cache_line inputreg_out;
@@ -256,7 +255,6 @@ register #(.width(16)) addr_reg
 assign hit = (hit0 | hit1 | hit2 | hit3);
 assign full = (valid0 & valid1 & valid2 & valid3);
 assign dirty = dirtymux_out;
-//assign l2_address = {l2_tagmuxout, 4'b0};
 assign l2_wdata = outputreg_out[127:0];
 assign l1_rdata = outputregmux_out[127:0];
 assign l1_dirty = outputregmux_out[128];
