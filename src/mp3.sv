@@ -71,7 +71,7 @@ l1_cache l1_cache_obj
 	.l2_read,
 	.l2_write,
 	.l2_miss,
-	.l2_total
+	.l2_total,
 	.l2_dirty_in,
 	.l2_dirty_out,
 	.cpu_address

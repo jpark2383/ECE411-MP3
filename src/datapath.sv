@@ -50,7 +50,12 @@ lc3b_word 	pc_out,
       forward_sr1,
       forward_sr2,
 		hazard_ir,
-		ex_alu_reg_out;
+		ex_alu_reg_out,
+		branch_pred_target,
+		branch_mux_out,
+		ex_pc_branch_out,
+		ir_pc_out,
+		pc_mux_temp_out;
 lc3b_reg dest_mux_out;
 lc3b_byte byte_mux_out;
 lc3b_passed_vals  mem_passed_reg_out,
@@ -61,14 +66,19 @@ lc3b_control_word gen_ctrl_out,
 						id_ctrl_out,
    					ex_ctrl_out, 
 						mem_ctrl_out;
-logic mem_ready_0, mem_ready_1;
+logic mem_ready_0, mem_ready_1, branch_hit;
 logic [2:0] src_b_mux_out,
 				sr1_addr_out,
 				sr2_addr_out;
+logic [1:0] branch_taken2,
+				branch_bhr,
+				branch_pred_out;
 logic stall, hazard_pc;
 lc3b_nzp gencc_out,
 			cc_out,
 			cc_reg_out;
+logic cc;
+logic[20:0] branch_reg_out;
 logic cccomp_out, invalidate;
 assign mem_address_0 = pc_out;
 //assign mem_address_1 = ex_alu_out;
@@ -114,27 +124,32 @@ control_rom gen_ctrl
 passed_rom gen_passed
 (
 	.ir(ir_out),
-    .branch(branch_reg_out)
+	.pc(id_pc_out),
+   .branch(branch_reg_out),
 	.passed(gen_passed_out)
 );
-register #(.width(19)) branch_reg
+register #(.width(21)) branch_reg
 (
     .clk,
     .load(~stall),
-    .in({branch_bhr, branch_pred_target, branch_hit}),
+    .in({branch_pred_out, branch_bhr, branch_pred_target, branch_hit}),
     .out(branch_reg_out)
 );
 assign branch_taken2 = ex_ctrl_out.pc_sel & {1'b1, cc};
-assign invalidate = (pc_mux_out != ex_passed_reg_out.branch_pred_target);
+assign pred_taken = (ex_passed_reg_out.branch_pred[1]) && (ex_passed_reg_out.branch_hit);
+assign invalid_take = (ex_ctrl_out.pc_sel != 0) ^ pred_taken;
+assign invalidate = (invalid_take || pred_taken && ex_passed_reg_out.branch_pred_target != pc_mux_temp_out) &&
+							!(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br);
 branch branch_obj
 (
     .clk,
     .pc(pc_out),
-    .branch_load(ex_ctrl_out.pc_sel[1] | ex_ctrl_out.pc_sel[0]),
-    .branch_taken(branch_write[0] | branch_write[1]),
-    .branch_pc(ex_pc_out),
-    .branch_target(pc_mux_out),
-    .bhr_in(ex_passed_reg_out.bhr),
+    .branch_load((~stall) && (ex_ctrl_out.pc_sel[1] | ex_ctrl_out.pc_sel[0]) && !(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br)),
+    .branch_taken(branch_taken2[0] | branch_taken2[1]),
+    .branch_pc(ex_passed_reg_out.pc),
+    .branch_target(pc_mux_temp_out),
+	 .branch_pred_out,
+    .bhr_in(ex_passed_reg_out.bhr_out),
     .bhr_out(branch_bhr),
     .branch_pred_target,
     .branch_hit
@@ -321,7 +336,6 @@ register ex_pc_reg
 	.in(jsr_mux_out),
 	.out(ex_pc_out)
 );
-
 mux4 lea_mux
 (
 	.sel(id_ctrl_out.lea_mux_sel),
@@ -464,7 +478,7 @@ cccomp cccomp_obj
 register pc
 (
 	.clk,
-	.load(~stall && hazard_pc),
+	.load(~stall && (hazard_pc || invalidate)),
 	.in(pc_mux_out),
 	.out(pc_out)
 );
@@ -476,13 +490,13 @@ adder2 pc_adder
 );
 mux2 branch_mux
 (
-    .sel(branch_bhr[1] & branch_hit),
+    .sel(branch_pred_out[1] & branch_hit),
     .a(pc_adder_out),
     .b(branch_pred_target),
     .f(branch_mux_out)
 );
 
-logic cc;
+
 assign cc = (~ex_ctrl_out.check_cc | cccomp_out);
 
 mux4 pc_mux 
@@ -492,6 +506,13 @@ mux4 pc_mux
 	.b(ex_pc_out),
 	.c(ex_alu_out),
 	.d(mem_rdata_1_out),
+	.f(pc_mux_temp_out)
+);
+mux2 valid_pc_mux
+(
+	.sel(invalidate),
+	.a(branch_mux_out),
+	.b(pc_mux_temp_out),
 	.f(pc_mux_out)
 );
 register ir

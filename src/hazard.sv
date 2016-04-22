@@ -34,8 +34,8 @@ always_comb begin
   else begin
      if ((lc3b_opcode'(ir_val[15:12]) == op_br && ir_val[11:9] != 0)|| lc3b_opcode'(ir_val[15:12]) == op_jsr || lc3b_opcode'(ir_val[15:12]) == op_trap) begin
 		 if (~stall) begin
-			next_counter = 2'b10;
-			next_b_counter = 1;
+			next_counter = 2'b00;
+			next_b_counter = 0;
 		 end
 	  end
      else if (lc3b_opcode'(ir_val[15:12]) == op_ldr || lc3b_opcode'(ir_val[15:12]) == op_ldb || lc3b_opcode'(ir_val[15:12]) == op_ldi) begin 

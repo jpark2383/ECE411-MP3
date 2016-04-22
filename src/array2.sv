@@ -1,15 +1,14 @@
-import lc3b_types::*;
 module array2 #(parameter width = 16, parameter height = 32)
 (
     input clk,
     input write,
-    input [4:0] index_in,
-    input [4:0] index_out,
+    input [height-1:0] index_in,
+    input [height-1:0] index_out,
     input [width-1:0] datain,
     output logic [width-1:0] dataout,
     output logic [width-1:0] preview
 );
-logic [width-1:0] data [height-1:0];
+logic [width-1:0] data [2**height-1:0];
 /* Initialize array */
 initial
 begin

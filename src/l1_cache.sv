@@ -71,7 +71,7 @@ cache icache
 	.l2_miss(),
 	.l2_total(),
 	.total_count(l1i_total),
-	.miss_count(l1i_miss)
+	.miss_count(l1i_miss),
 	.dirty_in(icache_dirty_in),
 	.dirty_out(icache_dirty_out)
 );
@@ -103,7 +103,7 @@ cache dcache
 	.l2_miss,
 	.l2_total,
 	.total_count(),
-	.miss_count()
+	.miss_count(),
 	.dirty_in(dcache_dirty_in),
 	.dirty_out(dcache_dirty_out)
 );

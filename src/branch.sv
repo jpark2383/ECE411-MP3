@@ -13,23 +13,23 @@ module branch
     input logic [1:0] bhr_in,
 
     output logic[1:0] bhr_out,
+	 output logic[1:0] branch_pred_out,
     output lc3b_word branch_pred_target,
     output branch_hit
 );
 
-logic [31:0] btb0_out, btb1_out, btb2_out, btb3_out;
-logic [1:0] branch_pred_new, branch_pred_out;
+logic[31:0] btb_out0, btb_out1, btb_out2, btb_out3;
+logic[31:0] btb_preview0, btb_preview1, btb_preview2, btb_preview3;
+logic btb0_load, btb1_load, btb2_load, btb3_load;
+logic[1:0] bht_preview, branch_pred_new;
 
 always_comb begin
     branch_pred_new = bht_preview;
     if ((branch_taken == 1) && (bht_preview != 2'b11))
-        branch_pred_new = bht_preview + 1;
+        branch_pred_new = bht_preview + 2'b01;
     if ((branch_taken == 0) && (bht_preview != 2'b00))
-        branch_pred_new = bht_preview - 1;
+        branch_pred_new = bht_preview - 2'b01;
 end
-
-//assign branch_pred_target = btb_line_out[17:2];
-assign branch_pred_take = branch_hit && branch_pred_out[1];
 
 register #(.width(2)) bhr
 (
@@ -39,7 +39,7 @@ register #(.width(2)) bhr
     .out(bhr_out)
 );
 
-array2 #(.width(2), .height(32)) bht
+array2 #(.width(2), .height(5)) bht
 (
     .clk,
     .write(branch_load),
@@ -52,46 +52,46 @@ array2 #(.width(2), .height(32)) bht
 
 branch_logic branch_logic_obj(.*);
 
-array2 #(.width(32), .height(8)) btb0
+array2 #(.width(32), .height(3)) btb0
 (
     .clk,
     .write(btb0_load),
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb0_preview),
-    .dataout(btb0_out)
+    .preview(btb_preview0),
+    .dataout(btb_out0)
 );
 
-array2 #(.width(32), .height(8)) btb1
+array2 #(.width(32), .height(3)) btb1
 (
     .clk,
     .write(btb1_load),
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb1_preview),
-    .dataout(btb1_out)
+    .preview(btb_preview1),
+    .dataout(btb_out1)
 );
-array2 #(.width(32), .height(8)) btb2
+array2 #(.width(32), .height(3)) btb2
 (
     .clk,
     .write(btb2_load),
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb2_preview),
-    .dataout(btb2_out)
+    .preview(btb_preview2),
+    .dataout(btb_out2)
 );
-array2 #(.width(32), .height(8)) btb3
+array2 #(.width(32), .height(3)) btb3
 (
     .clk,
     .write(btb3_load),
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb3_preview),
-    .dataout(btb3_out)
+    .preview(btb_preview3),
+    .dataout(btb_out3)
 );
 
 endmodule:branch
