@@ -39,7 +39,6 @@ begin
 	dirty_in = 0;
 	valid_in = 0;
 	pseudoarray_load = 0;
-	pmem_addressmuxsel = 0;
 	pmem_write = 0;
 	pmem_read = 0;
 
@@ -54,7 +53,6 @@ begin
 		
 		write_back: begin
 			pmem_write = 1;
-			pmem_addressmuxsel = 1;
 		end
 		
 		read_pmem: begin
@@ -68,6 +66,13 @@ begin
 		
 		default: ;
 	endcase
+end
+
+always_comb
+begin
+	pmem_addressmuxsel = 0;
+	if(next_state == write_back)
+		pmem_addressmuxsel = 1;
 end
 
 always_comb

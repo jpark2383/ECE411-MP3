@@ -189,20 +189,29 @@ mux4 #(.width(128)) datamux
 	.f(datamux_out)
 );
 
+lc3b_word addr_;
 mux2 #(.width(16)) pmem_addressmux
 (
 	.sel(pmem_addressmuxsel),
 	.a({tag, index, 4'b0000}),
 	.b({tagmux_out, index, 4'b0000}),
-	.f(pmem_address)
+	.f(addr_)
 );
 
-register #(.width(128)) outmux
+register #(.width(128)) outreg
 (
 	.clk,
 	.load(1'b1),
 	.in(datamux_out),
 	.out(pmem_wdata)
+);
+
+register #(.width(16)) addr_reg
+(
+	.clk,
+	.load(1'b1),
+	.in(addr_),
+	.out(pmem_address)
 );
 
 assign hit = (hit0 | hit1 | hit2 | hit3);
