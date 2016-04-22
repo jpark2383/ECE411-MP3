@@ -22,9 +22,9 @@ logic [1:0] branch_pred_new, branch_pred_out;
 
 always_comb begin
     branch_pred_new = bht_preview;
-    if (branch_taken == 1) && (bht_preview != 2'b11)
+    if ((branch_taken == 1) && (bht_preview != 2'b11))
         branch_pred_new = bht_preview + 1;
-    if (branch_taken == 0) && (bht_preview != 2'b00)
+    if ((branch_taken == 0) && (bht_preview != 2'b00))
         branch_pred_new = bht_preview - 1;
 end
 
@@ -59,7 +59,7 @@ array2 #(.width(32), .height(8)) btb0
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb0_preview)
+    .preview(btb0_preview),
     .dataout(btb0_out)
 );
 
@@ -70,7 +70,7 @@ array2 #(.width(32), .height(8)) btb1
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb1_preview)
+    .preview(btb1_preview),
     .dataout(btb1_out)
 );
 array2 #(.width(32), .height(8)) btb2
@@ -80,7 +80,7 @@ array2 #(.width(32), .height(8)) btb2
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb2_preview)
+    .preview(btb2_preview),
     .dataout(btb2_out)
 );
 array2 #(.width(32), .height(8)) btb3
@@ -90,7 +90,7 @@ array2 #(.width(32), .height(8)) btb3
     .index_in(branch_pc[4:2]),
     .index_out(pc[4:2]),
     .datain({branch_pc, branch_target}),
-    .preview(btb3_preview)
+    .preview(btb3_preview),
     .dataout(btb3_out)
 );
 

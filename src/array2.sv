@@ -28,4 +28,4 @@ end
 
 assign preview = data[index_in];
 assign dataout = data[index_out];
-endmodule : array
+endmodule : array2
