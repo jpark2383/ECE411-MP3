@@ -35,7 +35,7 @@ enum int unsigned {
 always_comb
 begin
 	inputreg_load = 0;
-	outputreg_load = 1;
+	outputreg_load = 0;
 	selmux_sel = 0;
 	lru_load = 0;
 	linehitmux_sel = 0;
