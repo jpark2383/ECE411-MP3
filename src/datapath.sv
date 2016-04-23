@@ -467,7 +467,7 @@ mux4 pc_mux
 register ir
 (
 	.clk,
-	.load(~stall),
+	.load(~stall & (~ex_ctrl_out.flush | ~cc)),
 	.in(hazard_ir),
 	.out(ir_out)
 );

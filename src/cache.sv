@@ -103,7 +103,8 @@ cache_datapath datapath
 	 .lru,
 	 .dirty0,
 	 .dirty1,
-	 .dirty_out
+	 .dirty_out,
+	 .dirty_in
 );
 
 /* cache hit/miss counters */

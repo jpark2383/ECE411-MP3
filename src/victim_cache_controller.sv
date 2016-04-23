@@ -52,6 +52,7 @@ begin
 				inputreg_load = 1;
 				outputreg_load = 1;
 				lru_load = 1;
+				mem_resp = 1;
 			end
 			else if(~hit && l1_write) begin /* inreg  <= L1 cache; outreg <= victim lru line */
 				inputreg_load = 1;

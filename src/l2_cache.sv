@@ -17,8 +17,10 @@ module l2_cache
 
 	output lc3b_word pmem_address,
 	output lc3b_cache_line pmem_wdata,
-	output pmem_read,
-	output pmem_write
+	output logic pmem_read,
+	output logic pmem_write,
+	output lc3b_word l2_miss,
+	output lc3b_word l2_total
 );	
 
 lc3b_c2_tag tag;
