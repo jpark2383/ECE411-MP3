@@ -77,6 +77,7 @@ l1_cache l1_cache_obj
 	.cpu_address
 );
 
+/* WITHOUT L2 CACHE  
 victim_cache victim_cache_obj
 (
 	.clk,
@@ -96,28 +97,44 @@ victim_cache victim_cache_obj
 	.l2_write(pmem_write), 
 	.l2_read(pmem_read)
 );
-
-/*
-assign pmem_address = l2_address;
-assign pmem_read = l2_read; 
-assign pmem_write = l2_write;
-assign pmem_wdata = l2_wdata;
-assign l2_rdata = pmem_rdata;
-assign l2_mem_resp = pmem_resp;
 */
 
-/*
+/* WITH L2 CACHE  */
+lc3b_cache_line rdata, wdata;
+logic w, r, resp;
+lc3b_word addr;
+
+victim_cache victim_cache_obj
+(
+	.clk,
+	.tag(cpu_address[15:4]),
+	.l1_wdata(l2_wdata),
+	.l1_write(l2_write), 
+	.l1_read(l2_read),
+	.l1_tag(l2_address[15:4]),
+	.dirty_in(l2_dirty_out),
+	.l1_rdata(l2_rdata),
+	.l1_dirty(l2_dirty_in),
+	.mem_resp(l2_mem_resp),
+	.l2_rdata(rdata),
+	.l2_mem_resp(resp),
+	.l2_address(addr),
+	.l2_wdata(wdata),
+	.l2_write(w),
+	.l2_read(r)
+);
+
 l2_cache l2_cache_obj
 (
 	.clk,
-	.mem_address(l2_address),
-	.mem_wdata(l2_wdata),
-	.mem_read(l2_read),
-	.mem_write(l2_write),
+	.mem_address(addr),
+	.mem_wdata(wdata),
+	.mem_read(r),
+	.mem_write(w),
 	.pmem_rdata,
 	.pmem_resp,
-	.mem_rdata(l2_rdata),
-	.mem_resp(l2_mem_resp),
+	.mem_rdata(rdata),
+	.mem_resp(resp),
 	.pmem_address,
 	.pmem_wdata,
 	.pmem_read,
@@ -125,7 +142,5 @@ l2_cache l2_cache_obj
 	.l2_miss,
 	.l2_total
 );
-*/ 
-
 
 endmodule : mp3

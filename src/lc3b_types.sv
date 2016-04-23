@@ -20,8 +20,8 @@ typedef logic  [3:0] lc3b_c_offset;
 typedef logic  [2:0] lc3b_c_index;
 
 //l2 cache data types
-typedef logic [5:0] lc3b_c2_tag;
-typedef logic [5:0] lc3b_c2_index;
+typedef logic [8:0] lc3b_c2_tag;
+typedef logic [2:0] lc3b_c2_index;
 typedef logic [3:0] lc3b_c2_offset;
 
 typedef logic [11:0] lc3b_v_tag;
@@ -79,6 +79,7 @@ typedef struct packed {
 	logic[1:0] lea_mux_sel;
 	logic[1:0] jsr_mux_sel;
 	logic check_cc;
+    logic flush;
 } lc3b_control_word;
 
 endpackage : lc3b_types

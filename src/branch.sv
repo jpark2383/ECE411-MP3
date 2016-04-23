@@ -44,7 +44,7 @@ array2 #(.width(2), .height(5)) bht
     .clk,
     .write(branch_load),
     .index_in({bhr_in, branch_pc[5:3]}),
-    .index_out({bhr_out, branch_pc[5:3]}),
+    .index_out({bhr_out, pc[5:3]}),
     .preview(bht_preview),
     .datain(branch_pred_new),
     .dataout(branch_pred_out)

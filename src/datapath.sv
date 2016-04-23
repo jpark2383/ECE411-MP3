@@ -125,25 +125,21 @@ passed_rom gen_passed
 (
 	.ir(ir_out),
 	.pc(id_pc_out),
-   .branch(branch_reg_out),
+   .branch({branch_pred_out, branch_bhr, branch_pred_target, branch_hit}),
 	.passed(gen_passed_out)
 );
-register #(.width(21)) branch_reg
-(
-    .clk,
-    .load(~stall),
-    .in({branch_pred_out, branch_bhr, branch_pred_target, branch_hit}),
-    .out(branch_reg_out)
-);
+
 assign branch_taken2 = ex_ctrl_out.pc_sel & {1'b1, cc};
 assign pred_taken = (ex_passed_reg_out.branch_pred[1]) && (ex_passed_reg_out.branch_hit);
-assign invalid_take = (ex_ctrl_out.pc_sel != 0) ^ pred_taken;
-assign invalidate = (invalid_take || pred_taken && ex_passed_reg_out.branch_pred_target != pc_mux_temp_out) &&
+assign invalid_take = (ex_ctrl_out.pc_sel & {1'b1, cc}) ^ pred_taken;
+assign invalidate = (invalid_take || (pred_taken && (ex_passed_reg_out.branch_pred_target != pc_mux_temp_out))) &&
 							!(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br);
+assign branch_jmp = branch_pred_out[1] & branch_hit & ((lc3b_opcode'(ir_out[15:12]) == op_br && ir_out[11:9] != 0) || lc3b_opcode'(ir_out[15:12]) == op_jsr || lc3b_opcode'(ir_out[15:12]) == op_trap);
+
 branch branch_obj
 (
     .clk,
-    .pc(pc_out),
+    .pc(id_pc_out),
     .branch_load((~stall) && (ex_ctrl_out.pc_sel[1] | ex_ctrl_out.pc_sel[0]) && !(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br)),
     .branch_taken(branch_taken2[0] | branch_taken2[1]),
     .branch_pc(ex_passed_reg_out.pc),
@@ -414,7 +410,7 @@ register #(.width($bits(lc3b_control_word))) mem_control
 (
 	.clk,
 	.load(~stall),
-	.in(ex_ctrl_out & {$bits(lc3b_control_word){~invalidate}}),
+	.in(ex_ctrl_out),
 	.out(mem_ctrl_out)
 );
 register #(.width($bits(lc3b_passed_vals))) mem_passed_reg
@@ -478,7 +474,7 @@ cccomp cccomp_obj
 register pc
 (
 	.clk,
-	.load(~stall && (hazard_pc || invalidate)),
+	.load(~stall && (hazard_pc || invalidate || branch_jmp)),
 	.in(pc_mux_out),
 	.out(pc_out)
 );
@@ -490,7 +486,7 @@ adder2 pc_adder
 );
 mux2 branch_mux
 (
-    .sel(branch_pred_out[1] & branch_hit),
+    .sel(branch_jmp),
     .a(pc_adder_out),
     .b(branch_pred_target),
     .f(branch_mux_out)
@@ -508,18 +504,20 @@ mux4 pc_mux
 	.d(mem_rdata_1_out),
 	.f(pc_mux_temp_out)
 );
-mux2 valid_pc_mux
+mux4 valid_pc_mux
 (
-	.sel(invalidate),
+	.sel({(pred_taken && invalid_take), invalidate}),
 	.a(branch_mux_out),
 	.b(pc_mux_temp_out),
+	.c(16'b0),
+	.d(ex_passed_reg_out.pc + 2),
 	.f(pc_mux_out)
 );
 register ir
 (
 	.clk,
 	.load(~stall),
-	.in(hazard_ir),
+	.in(hazard_ir & {$bits(lc3b_control_word){~invalidate}}),
 	.out(ir_out)
 );
 hazard hazard_obj
