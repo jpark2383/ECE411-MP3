@@ -2,45 +2,46 @@ import lc3b_types::*;
 
 module cache_datapath
 (
-	input clk,
+	 input clk,
+	 
+	 input lc3b_word mem_address,
+	 input lc3b_c_tag tag,
+	 input lc3b_c_index index,
+	 input lc3b_c_offset offset,
+	 
+	 input lc3b_word mem_wdata,
+	 input lc3b_mem_wmask mem_byte_enable,
+	 input lc3b_cache_line pmem_rdata,
+	 
+	 input pmem_addressmux_sel,
+	 
+	 input dirty0_write,
+	 input dirty0_in,
+	 input valid0_write,
+	 input valid0_in,
+	 input tag0_write,
+  	 input data0_write,
+ 
+	 input dirty1_write,
+	 input dirty1_in,
+	 input valid1_write,
+	 input valid1_in,
+	 input tag1_write,
+	 input data1_write,
 
-	input lc3b_word mem_address,
-	input lc3b_c_tag tag,
-	input lc3b_c_index index,
-	input lc3b_c_offset offset,
+	 input lru_write,
 
-	input lc3b_word mem_wdata,
-	input lc3b_mem_wmask mem_byte_enable,
-	input lc3b_cache_line pmem_rdata,
-
-	input pmem_addressmux_sel,
-	input dirty_in,
-	input dirty0_write,
-	input valid0_write,
-	input valid0_in,
-	input tag0_write,
-	input data0_write,
-
-	input dirty1_write,
-	input valid1_write,
-	input valid1_in,
-	input tag1_write,
-	input data1_write,
-
-	input lru_write,
-
-	input datawritemux_sel,
-
-	input mem_write,
-
-	output logic hit, full, valid0, valid1,
-	output lc3b_cache_line pmem_wdata,
-	output lc3b_word pmem_address,
-	output lc3b_word mem_rdata,
-	output logic mem_resp,
-	output logic lru,
-	output logic dirty0, dirty1,
-	output logic dirty_out
+	 input datawritemux_sel,
+	 
+	 input mem_write,
+	 
+	 output logic hit, full, valid0, valid1,
+	 output lc3b_cache_line pmem_wdata,
+	 output lc3b_word pmem_address,
+	 output lc3b_word mem_rdata,
+	 output logic mem_resp,
+	 output logic lru,
+	 output logic dirty0, dirty1
 );
 
 lc3b_cache_line data0_out, data1_out;
@@ -63,14 +64,13 @@ logic data1w;
 assign data0w = data0_write | (hit0 & mem_write);
 assign data1w = data1_write | (hit1 & mem_write);
 
-logic dirtymux_out;
 
 array #(.width(1)) dirty0arr
 (
 	.clk(clk),
 	.write(dirty0_write | (hit0 & mem_write)),
 	.index(index),
-	.datain(dirty_in | (hit0 & mem_write)),
+	.datain(dirty0_in | (hit0 & mem_write)),
 	.dataout(dirty0_out)
 );
 
@@ -113,7 +113,7 @@ array #(.width(1)) dirty1arr
 	.clk(clk),
 	.write(dirty1_write | (hit1 & mem_write)),
 	.index(index),
-	.datain(dirty_in | (hit1 & mem_write)),
+	.datain(dirty1_in | (hit1 & mem_write)),
 	.dataout(dirty1_out)
 );
 
@@ -237,15 +237,6 @@ mux2 #(.width(16)) pmem_addressmux
 	 .f(pmem_address)
 );
 
-mux2 #(.width(1)) dirtymux
-(
-	.sel(cachelinemux_sel),
-	.a(dirty0_out),
-	.b(dirty1_out),
-	.f(dirtymux_out)
-);
-
-
 assign hit0 = (tag0comp_out & valid0_out);
 assign hit1 = (tag1comp_out & valid1_out);
 assign hit = hit0 | hit1;
@@ -257,7 +248,5 @@ assign mem_resp = hit;
 assign lru = lru_out;
 assign dirty0 = dirty0_out;
 assign dirty1 = dirty1_out;
-
-assign dirty_out = dirtymux_out;
 
 endmodule : cache_datapath

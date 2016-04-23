@@ -80,25 +80,27 @@ begin
 	next_state = state;
 	case(state)
 		idle: begin
-			if((mem_read | mem_write) & ~hit & (~full | ~dirty)) begin
-				next_state = read_pmem;
+			if((mem_read | mem_write) & full & (~hit)) begin
+				next_state = write_back;
 			end
 			else if((mem_read | mem_write) & ~hit) begin
-				next_state = write_back;
+				next_state = read_pmem;
 			end
 		end
 		
 		write_back: begin
-			if(pmem_resp)
+			if(~dirty)
 				next_state = read_pmem;
-			else
+			else if(pmem_resp == 0)
 				next_state = write_back;
+			else
+				next_state = read_pmem;
 		end
 		
 		read_pmem: begin
-			if(pmem_resp)
-				next_state = idle;
-			else
+			if(pmem_resp == 0)
+				next_state = read_pmem;
+			else if(read_pmem & mem_read)
 				next_state = read_pmem;
 		end
 		

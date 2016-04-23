@@ -32,7 +32,9 @@ always_comb begin
 		next_counter = counter;
   end
   else begin
-     if ((lc3b_opcode'(ir_val[15:12]) == op_br && ir_val[11:9] != 0)|| lc3b_opcode'(ir_val[15:12]) == op_jsr || lc3b_opcode'(ir_val[15:12]) == op_trap) begin
+     ir_out = ir_val;
+     pc_ld = 1;
+     if ((lc3b_opcode'(ir_val[15:12]) == op_br && ir_val[11:9] != 0)|| lc3b_opcode'(ir_val[15:12]) == op_jsr || lc3b_opcode'(ir_val[15:12]) == op_trap || lc3b_opcode'(ir_val[15:12]) == op_jmp) begin
 		 if (~stall) begin
 			next_counter = 2'b10;
 			next_b_counter = 1;
@@ -44,10 +46,9 @@ always_comb begin
 			next_b_counter = 1;
 		end	
 	  end
-     ir_out = ir_val;
-     pc_ld = 1;
   end
 end
+
 always_ff @(posedge clk) begin
    counter = next_counter;
    bubble_counter = bubble_counter + next_b_counter;
