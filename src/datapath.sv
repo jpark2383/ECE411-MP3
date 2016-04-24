@@ -134,7 +134,7 @@ assign pred_taken = (ex_passed_reg_out.branch_pred[1]) && (ex_passed_reg_out.bra
 assign invalid_take = (ex_ctrl_out.pc_sel & {1'b1, cc}) ^ pred_taken;
 assign invalidate = (invalid_take || (pred_taken && (ex_passed_reg_out.branch_pred_target != pc_mux_temp_out))) &&
 							!(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br);
-assign branch_jmp = branch_pred_out[1] & branch_hit & ((lc3b_opcode'(ir_out[15:12]) == op_br && ir_out[11:9] != 0) || lc3b_opcode'(ir_out[15:12]) == op_jsr || lc3b_opcode'(ir_out[15:12]) == op_trap);
+assign branch_jmp = branch_pred_out[1] & branch_hit & ((lc3b_opcode'(ir_out[15:12]) == op_br && ir_out[11:9] != 0) || lc3b_opcode'(ir_out[15:12]) == op_jsr || lc3b_opcode'(ir_out[15:12]) == op_trap || lc3b_opcode'(ir_out[15:12]) == op_jmp);
 
 branch branch_obj
 (
@@ -506,7 +506,7 @@ mux4 pc_mux
 );
 mux4 valid_pc_mux
 (
-	.sel({(pred_taken && invalid_take), invalidate}),
+	.sel({(pred_taken && invalid_take && !(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br)), invalidate}),
 	.a(branch_mux_out),
 	.b(pc_mux_temp_out),
 	.c(16'b0),
