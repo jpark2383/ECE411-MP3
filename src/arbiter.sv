@@ -41,8 +41,12 @@ module arbiter
 
 enum int unsigned {
 	idle,
-	icache,
-	dcache
+	icache_wb,
+	dcache_wb,
+	icache_idle,
+	dcache_idle,
+	icache_r,
+	dcache_r
 } state, next_state;
 
 /* Output logic */
@@ -70,7 +74,7 @@ begin
 			;
 		end
 		
-		icache: begin
+		icache_wb: begin
 			l2_address = icache_address;
 			l2_wdata = icache_wdata;
 			l2_read = icache_read;
@@ -89,7 +93,7 @@ begin
 			cpu_address = icpu_address;
 		end
 		
-		dcache: begin
+		dcache_wb: begin
 			l2_address = dcache_address;
 			l2_wdata = dcache_wdata;
 			l2_read = dcache_read;
@@ -107,7 +111,53 @@ begin
 
 			cpu_address = dcpu_address;
 		end
+
+		icache_idle: begin
+			;
+		end
+
+		dcache_idle: begin
+			;
+		end
+
+		icache_r: begin
+			l2_address = icache_address;
+			l2_wdata = icache_wdata;
+			l2_read = icache_read;
+			l2_write = icache_write;
+
+			icache_mem_resp = l2_mem_resp;
+			icache_rdata = l2_rdata;
+			
+			dcache_mem_resp = 0;
+			dcache_rdata = 0;
+
+			icache_dirty_in = l2_dirty_in;
+			dcache_dirty_in = 0;
+			l2_dirty_out = icache_dirty_out;
+
+			cpu_address = icpu_address;
+		end
 		
+		dcache_r: begin
+			l2_address = dcache_address;
+			l2_wdata = dcache_wdata;
+			l2_read = dcache_read;
+			l2_write = dcache_write;
+
+			icache_mem_resp = 0;
+			icache_rdata = 0;
+			
+			dcache_mem_resp = l2_mem_resp;
+			dcache_rdata = l2_rdata;
+
+			icache_dirty_in = 0;
+			dcache_dirty_in = l2_dirty_in;
+			l2_dirty_out = dcache_dirty_out;
+
+			cpu_address = dcpu_address;
+		end
+
 		default: ;
 	endcase
 end
@@ -118,24 +168,58 @@ begin
 	next_state = idle;
 	case(state)
 		idle: begin
-			if(icache_read | icache_write)
-				next_state = icache;
-			else if(dcache_read | dcache_write)
-				next_state = dcache;
-		end
-		
-		icache: begin
-			if(l2_mem_resp)
+			if(icache_read)
+				next_state = icache_r;
+			else if(icache_write)
+				next_state = icache_wb;
+			else if(dcache_read)
+				next_state = dcache_r;
+			else if(dcache_write)
+				next_state = dcache_wb;
+			else
 				next_state = idle;
-			else 
-				next_state = icache;
 		end
 		
-		dcache: begin
+		icache_wb: begin
+			if(l2_mem_resp)
+				next_state = icache_idle;
+			else 
+				next_state = icache_wb;
+		end
+		
+		icache_idle: begin
+			if(icache_read)
+				next_state = icache_r;
+			else
+				next_state = icache_idle;
+		end
+
+		dcache_idle: begin
+			if(dcache_read)
+				next_state = dcache_r;
+			else
+				next_state = dcache_idle;
+		end
+
+		dcache_wb: begin
 			if(l2_mem_resp)
 				next_state = idle;
 			else
-				next_state = dcache;
+				next_state = dcache_wb;
+		end
+
+		icache_r: begin
+			if(l2_mem_resp)
+				next_state = idle;
+			else 
+				next_state = icache_r;
+		end
+
+		dcache_r: begin
+			if(l2_mem_resp)
+				next_state = idle;
+			else 
+				next_state = dcache_r;
 		end
 		
 		default: ;
