@@ -130,11 +130,17 @@ passed_rom gen_passed
 );
 
 assign branch_taken2 = ex_ctrl_out.pc_sel & {1'b1, cc};
-assign pred_taken = (ex_passed_reg_out.branch_pred[1]) && (ex_passed_reg_out.branch_hit);
+assign pred_taken = ((ex_passed_reg_out.branch_pred[1]) || lc3b_opcode'(ir_out[15:12]) == op_jsr || lc3b_opcode'(ir_out[15:12]) == op_trap || lc3b_opcode'(ir_out[15:12]) == op_jmp) && (ex_passed_reg_out.branch_hit);
 assign invalid_take = (ex_ctrl_out.pc_sel & {1'b1, cc}) ^ pred_taken;
 assign invalidate = (invalid_take || (pred_taken && (ex_passed_reg_out.branch_pred_target != pc_mux_temp_out))) &&
 							!(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br);
 assign branch_jmp = branch_pred_out[1] & branch_hit & ((lc3b_opcode'(ir_out[15:12]) == op_br && ir_out[11:9] != 0) || lc3b_opcode'(ir_out[15:12]) == op_jsr || lc3b_opcode'(ir_out[15:12]) == op_trap || lc3b_opcode'(ir_out[15:12]) == op_jmp);
+branch_counter branch_counter_obj 
+(
+	.clk,
+	.branch((~stall) && (ex_ctrl_out.pc_sel[1] | ex_ctrl_out.pc_sel[0]) && !(ex_passed_reg_out.nzp == 0 && ex_ctrl_out.opcode == op_br)),
+	.miss((~stall) && invalidate)
+);
 
 branch branch_obj
 (
