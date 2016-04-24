@@ -33,6 +33,7 @@ logic hit, full, dirty;
 logic write, dirty_in, valid_in;
 logic pseudoarray_load;
 logic pmem_addressmuxsel;
+logic wdatamux_sel;
 
 l2_cache_control controller
 (

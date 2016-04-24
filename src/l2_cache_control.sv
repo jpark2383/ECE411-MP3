@@ -24,7 +24,8 @@ module l2_cache_control
 	output logic dirty_in,
 	output logic valid_in,
 	output logic pseudoarray_load,
-	output logic pmem_addressmuxsel
+	output logic pmem_addressmuxsel,
+	output logic wdatamux_sel
 );
 
 enum int unsigned {
@@ -37,17 +38,18 @@ always_comb
 begin
 	write = 0;
 	dirty_in = 0;
-	valid_in = 0;
+	valid_in = 1;
 	pseudoarray_load = 0;
 	pmem_write = 0;
 	pmem_read = 0;
+	wdatamux_sel = 0;
 
 	case(state)
 		idle: begin
 			if(hit) begin
 				write = mem_write;
 				dirty_in = mem_write;
-				pseudoarray_load = mem_write | mem_read;
+				pseudoarray_load = (mem_write | mem_read);
 			end
 		end
 		
@@ -57,6 +59,7 @@ begin
 		
 		read_pmem: begin
 			pmem_read = 1;
+			wdatamux_sel = 1;
 			if(pmem_resp) begin
 				write = 1;
 				pseudoarray_load = 1;
@@ -89,9 +92,7 @@ begin
 		end
 		
 		write_back: begin
-			if(~dirty)
-				next_state = read_pmem;
-			else if(pmem_resp == 0)
+			if(pmem_resp == 0)
 				next_state = write_back;
 			else
 				next_state = read_pmem;
@@ -100,8 +101,8 @@ begin
 		read_pmem: begin
 			if(pmem_resp == 0)
 				next_state = read_pmem;
-			else if(read_pmem & mem_read)
-				next_state = read_pmem;
+			else if(pmem_resp & mem_read)
+				next_state = idle;
 		end
 		
 		default: ;

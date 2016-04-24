@@ -20,7 +20,8 @@ module victim_cache_controller
 	output logic l2_read,
 	output logic l2_write,
 	output logic outputregmux_sel,
-	output logic valid_in
+	output logic valid_in,
+	output logic addr_load
 );
 
 enum int unsigned {
@@ -28,7 +29,8 @@ enum int unsigned {
 	swap,
 	write_l2,
 	read_l2,
-	write_victim
+	write_victim,
+	stall
 } state, next_state; 
 
 /* output logic */
@@ -77,11 +79,13 @@ begin
 				valid_in = 1;
 				cacheslot_load = 1;
 				linehitmux_sel = 1;
+				mem_resp = 1;
 			end
 		end 
 
 		read_l2: begin		/* read line from L2 and forward to L1*/
-			l2_read = 1;
+			if(l1_read)
+				l2_read = 1;
 			outputregmux_sel = 1;
 			if(l2_mem_resp) begin
 				lru_load = 1;
@@ -98,6 +102,10 @@ begin
 			lru_load = 1;
 		end
 
+		stall: begin
+			;
+		end
+
 		default: ;
 	endcase
 end
@@ -105,9 +113,12 @@ end
 always_comb
 begin
 	l2_tagmux_sel = 0;
-	if(next_state == read_l2) begin
+	addr_load = 0;
+	if(state == stall || state == read_l2) begin
 		l2_tagmux_sel = 1;
 	end
+	if(next_state == write_l2 || next_state == read_l2)
+		addr_load = 1;
 end
 
 /* next_state logic */ 
@@ -118,7 +129,7 @@ begin
 		idle: begin
 			if(hit && l1_write)
 				next_state = swap;
-			else if(~hit && l1_write && full && dirty) begin
+			else if(~hit && l1_write && full) begin
 				next_state = write_l2;
 			end
 			else if(~hit && l1_write && (~full | ~dirty)) 
@@ -135,8 +146,13 @@ begin
 
 		write_l2: begin
 			if(l2_mem_resp) begin
-				next_state = read_l2;
+				next_state = stall;
 			end
+		end
+
+		stall: begin
+			if(l1_read)
+				next_state = read_l2;
 		end
 
 		read_l2: begin

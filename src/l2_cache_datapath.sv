@@ -13,6 +13,8 @@ module l2_cache_datapath
 	input write, valid_in, dirty_in,
 	input pseudoarray_load,
 	input pmem_addressmuxsel,
+	input wdatamux_sel,
+	input mem_write,
 
 	output logic hit,
 	output logic full,
@@ -35,18 +37,25 @@ logic [2:0] lru_update, lru_out;
 
 logic [3:0] en;
 
+logic w0, w1, w2, w3;
+assign w0 = (write & en[0]) | (hit0 & mem_write);
+assign w1 = (write & en[1]) | (hit1 & mem_write);
+assign w2 = (write & en[2]) | (hit2 & mem_write);
+assign w3 = (write & en[3]) | (hit3 & mem_write);
+
+
 mux2 #(.width(128)) wdatamux
 (
-	.sel(hit),
-	.a(pmem_rdata),
-	.b(mem_wdata),
+	.sel(wdatamux_sel),
+	.a(mem_wdata),
+	.b(pmem_rdata),
 	.f(wdatamux_out)
 );
 
 cache_way way0
 (
 	.clk,
-	.write(write & en[0]),
+	.write(w0),
 	.index,
 	.tag_in(tag),
 	.data_in(wdatamux_out),
@@ -62,7 +71,7 @@ cache_way way0
 cache_way way1
 (
 	.clk,
-	.write(write & en[1]),
+	.write(w1),
 	.index,
 	.tag_in(tag),
 	.data_in(wdatamux_out),
@@ -78,7 +87,7 @@ cache_way way1
 cache_way way2
 (
 	.clk,
-	.write(write & en[2]),
+	.write(w2),
 	.index,
 	.tag_in(tag),
 	.data_in(wdatamux_out),
@@ -94,7 +103,7 @@ cache_way way2
 cache_way way3
 (
 	.clk,
-	.write(write & en[3]),
+	.write(w3),
 	.index,
 	.tag_in(tag),
 	.data_in(wdatamux_out),

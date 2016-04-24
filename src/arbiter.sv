@@ -182,7 +182,7 @@ begin
 		
 		icache_wb: begin
 			if(l2_mem_resp)
-				next_state = icache_idle;
+				next_state = icache_r;
 			else 
 				next_state = icache_wb;
 		end
@@ -203,7 +203,7 @@ begin
 
 		dcache_wb: begin
 			if(l2_mem_resp)
-				next_state = idle;
+				next_state = dcache_r;
 			else
 				next_state = dcache_wb;
 		end

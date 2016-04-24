@@ -50,13 +50,13 @@ array #(.width(9)) tag_array
 array #(.width(128)) data_array
 (
 	.clk,
-	.write,
+	.write(write),
 	.index(index),
 	.datain(data_in),
 	.dataout(data)
 );
 
-comparator #(.width()) tagcomp
+comparator #(.width(9)) tagcomp
 (
 	.a(tag),
 	.b(tag_in),

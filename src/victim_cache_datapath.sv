@@ -27,7 +27,8 @@ module victim_cache_datapath
 	output lc3b_word l2_address,
 	output lc3b_cache_line l2_wdata,
 	output lc3b_cache_line l1_rdata,
-	output logic l1_dirty
+	output logic l1_dirty,
+	input addr_load
 );
 
 lc3b_cache_line inputreg_out;
@@ -240,14 +241,13 @@ mux2 #(.width(12)) l2_tagmux
 (
 	.sel(l2_tagmux_sel),
 	.a(tagmux_out),
-	.b(tag),
+	.b(l1_tag),
 	.f(l2_tagmuxout)
 );
-
 register #(.width(16)) addr_reg
 (
 	.clk,
-	.load(1'b1),
+	.load(addr_load),
 	.in({l2_tagmuxout, 4'b0000}),
 	.out(l2_address)
 );
